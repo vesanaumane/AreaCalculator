@@ -208,6 +208,49 @@ export default function App() {
         setIsDrawingAllowed( false );
     }
 
+    // Create a last line between the first line's start
+    // and the previous line's end point. 
+    function handleOnClickAddNewLine() {
+        
+        // Get the lines.
+        const previousLines = lines.slice();
+
+        // Get new line coordinates.
+        var line;
+        if( previousLines.length == 0 ) {
+
+            // Create the first line.
+            const start = { x: 100, y: 200 };
+            const end = { x: 100, y:100 };
+            line = new Line( start, end, lines.length + 1 )
+
+           // line.setNewAngle( 90 );
+           // line.setNewLength( 100 );
+
+        } else {
+
+            // Add next line.
+            
+            // Get the previous line.
+            const previousLine = previousLines[ previousLines.length - 1 ];
+
+            // Create the line backwards to the previous line.
+            line = new Line( previousLine.end, previousLine.start, lines.length + 1 )
+
+            // Turn 30 degrees relative to the previous line.
+            var lineAngle = Math.abs( previousLine.angle - 90 );
+            lineAngle = lineAngle > 360 ? lineAngle - 360 : lineAngle;
+            line.setNewAngle( lineAngle );
+
+            // Set length 100.
+            line.setNewLength( 100 );
+        }
+
+        // Create the last line and save.
+        saveNewLine( line );
+        redraw();
+    }
+
     // Calculate area. https://www.mathsisfun.com/geometry/area-irregular-polygons.html
     function handleOnClickArea() {
         
@@ -271,7 +314,7 @@ export default function App() {
     return (
        
         <div className="App">
-            <h1>Area Calculator test</h1>
+            <h1>Area Calculator</h1>
             <div className="drawing">
                 <div className="drawingboard">
                     <canvas
@@ -294,6 +337,9 @@ export default function App() {
                     </button>
                     <button className="zoom-in-button" onClick={ () => handleOnClickZoomOut()}>
                         Zoom -
+                    </button>
+                    <button className="new-line-button" onClick={ () => handleOnClickAddNewLine()}>
+                        Add new line
                     </button>
                     <button className="enddrawing_button" onClick={ () => handleOnClickEnd()}>
                         Finish drawing
