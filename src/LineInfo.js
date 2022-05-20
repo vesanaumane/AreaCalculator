@@ -31,7 +31,7 @@ export default class LineInfo extends React.Component {
             <li key={ this.state.line.id }>
                 <div className="lineInfo">
                     <input type="number" step="0.01" defaultValue={this.state.length} onChange={ evt => { this.handleLengthInput( evt ) } } />
-                    <input type="number" step="0.01" min={0} max={360} defaultValue={this.state.angle} onChange={ evt => { this.handleAngleInput( evt ) } } />
+                    <input type="number" step="1" min={0} max={360} defaultValue={this.state.angle} onChange={ evt => { this.handleAngleInput( evt ) } } />
                     <button onClick={ () => { this.handleOnClick() }}>Save</button>
                 </div>
             </li> 

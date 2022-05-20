@@ -262,11 +262,16 @@ export default function App() {
         redraw();
     }
 
+    // Map touch envents to mouse event handlers.
+    function handleTouchStart( event ) { handleMouseDown( event.touches[0]) }
+    function handleTouchMove( event ) { handleMouseMove(event.touches[0]); event.preventDefault(); }
+    function handleTouchEnd( event ) { handleMouseUp(event.changedTouches[0]) }
+
 
     return (
        
         <div className="App">
-            <h1>Area Calculator</h1>
+            <h1>Area Calculator test</h1>
             <div className="drawing">
                 <div className="drawingboard">
                     <canvas
@@ -274,6 +279,9 @@ export default function App() {
                         onMouseDown={handleMouseDown}
                         onMouseMove={handleMouseMove}
                         onMouseUp={handleMouseUp}
+                        onTouchStart={handleTouchStart}
+                        onTouchMove={handleTouchMove}
+                        onTouchEnd={handleTouchEnd}
                         width="400"
                         height="400"
                         style={{ border: "1px solid #ccc" }
