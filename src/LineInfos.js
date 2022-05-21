@@ -15,7 +15,6 @@ export default function LineInfos( props ) {
     }
 
     function addLine( line ) {
-        console.log( "hello" );
 
         // Check that the current line is not already there.
         const oldLines = lines.slice();

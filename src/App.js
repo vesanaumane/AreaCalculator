@@ -195,6 +195,9 @@ export default function App() {
         // Do nothing if there is one or no lines.
         if( lines.length < 2 ) return;
 
+        // Do nothing if already finished.
+        if( !isDrawingAllowed ) return;
+
         // Get the lines.
         const previousLines = lines.slice(); 
         const firstLine = previousLines[ 0 ];
@@ -224,9 +227,6 @@ export default function App() {
             const end = { x: 100, y:100 };
             line = new Line( start, end, lines.length + 1 )
 
-           // line.setNewAngle( 90 );
-           // line.setNewLength( 100 );
-
         } else {
 
             // Add next line.
@@ -237,13 +237,18 @@ export default function App() {
             // Create the line backwards to the previous line.
             line = new Line( previousLine.end, previousLine.start, lines.length + 1 )
 
-            // Turn 30 degrees relative to the previous line.
+            // Turn 90 degrees relative to the previous line.
             var lineAngle = Math.abs( previousLine.angle - 90 );
             lineAngle = lineAngle > 360 ? lineAngle - 360 : lineAngle;
             line.setNewAngle( lineAngle );
 
             // Set length 100.
             line.setNewLength( 100 );
+
+             // Stop drawing if lines create a closed loop.
+            if( line.end.x == previousLines[ 0 ].start.x && line.end.y == previousLines[ 0 ].start.y ) {
+                setIsDrawingAllowed( false );
+            }
         }
 
         // Create the last line and save.
@@ -338,13 +343,13 @@ export default function App() {
                     <button className="zoom-in-button" onClick={ () => handleOnClickZoomOut()}>
                         Zoom -
                     </button>
-                    <button className="new-line-button" onClick={ () => handleOnClickAddNewLine()}>
+                    <button className="new-line-button" disabled={!isDrawingAllowed} onClick={ () => handleOnClickAddNewLine()}>
                         Add new line
                     </button>
-                    <button className="enddrawing_button" onClick={ () => handleOnClickEnd()}>
+                    <button className="enddrawing_button" disabled={!isDrawingAllowed} onClick={ () => handleOnClickEnd()}>
                         Finish drawing
                     </button>
-                    <button className="calc_area_button" onClick={ () => handleOnClickArea()}>
+                    <button className="calc_area_button" disabled={isDrawingAllowed} onClick={ () => handleOnClickArea()}>
                         Calculate area
                     </button>
                     <label>{area}</label>
