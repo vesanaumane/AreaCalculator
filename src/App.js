@@ -246,9 +246,10 @@ export default function App() {
         if( previousLines.length == 0 ) {
 
             // Create the first line.
-            const start = { x: 200, y: 200 };
-            const end = { x: 100, y:200 };
+            const start = { x: 50, y: 50 };
+            const end = { x: 150, y: 50 };
             line = new Line( start, end, lines.length + 1 )
+            line.setNewAngle( 0 );
 
         } else {
 
@@ -261,8 +262,9 @@ export default function App() {
             line = new Line( previousLine.end, previousLine.start, lines.length + 1 )
 
             // Turn 90 degrees relative to the previous line.
-            var lineAngle = Math.abs( previousLine.angle - 90 );
+            var lineAngle = previousLine.angle + 90;
             lineAngle = lineAngle > 360 ? lineAngle - 360 : lineAngle;
+            lineAngle = lineAngle < -360 ? lineAngle + 360 : lineAngle;
             line.setNewAngle( lineAngle );
 
             // Set length 100.

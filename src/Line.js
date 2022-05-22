@@ -58,7 +58,7 @@ export default class Line {
         this.length = calculateLength( this.start, this.end );
 
         // Calculate angle between x-axis and the line.
-        this.angle = findAngle( { start: this.start, end: this.end }, { start:{ x :0, y:0}, end: { x:1, y:0} } );
+        this.angle = newAngle;
 
         this.printToConsole();
     }

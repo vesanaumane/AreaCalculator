@@ -23,12 +23,28 @@ export default function LineInfo( { inputCallback, line } ) {
         inputCallback( { id: line.id, length: length, angle: angle } );
     }
 
+    const handleFocus = (event) => event.target.select();
+
     return(
             <div key={ line.id } className="lineInfo">
                 <div className="lineInfo">
                     <label>{line.id}. </label>
-                    <input type="number" step="0.01" defaultValue={line.length} onChange={ evt => { handleLengthInput( evt ) } } />
-                    <input type="number" step="1" min={-360} max={360} defaultValue={line.angle} onChange={ evt => { handleAngleInput( evt ) } } />
+                    <input 
+                        type="number" 
+                        step="0.01" 
+                        defaultValue={line.length} 
+                        onFocus={handleFocus} 
+                        onChange={ evt => { handleLengthInput( evt ) } } 
+                    />
+                    <input 
+                        type="number" 
+                        step="1" 
+                        min={-360} 
+                        max={360} 
+                        defaultValue={Math.round( line.angle )}
+                        onFocus={handleFocus} 
+                        onChange={ evt => { handleAngleInput( evt ) } } 
+                    />
                     <button onClick={ () => { handleOnClick() }}>Save</button>
                 </div>
             </div> 
