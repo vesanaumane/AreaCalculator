@@ -44,7 +44,7 @@ export default function App() {
 
     // Current state.
     const stateRef = useRef();
-    stateRef.cuyrrentLines = lines;
+    stateRef.currentLines = lines;
 
     // Call back for getting the data from input fields.
     function dataFromInputFields ( input ) {
@@ -87,6 +87,7 @@ export default function App() {
                 }
             }
 
+            updateDebugData( newLines );
             return newLines;
 
         } );
@@ -95,7 +96,7 @@ export default function App() {
             return oldVersion + 1;
         } );
 
-        updateDebugData();
+        
         redraw();
     }
 
@@ -311,7 +312,7 @@ export default function App() {
         previousLines.push( line );
         setLines( previousLines );
         setLinesVersion( linesVersion + 1 );
-        updateDebugData();
+        updateDebugData( previousLines );
     }
 
 
@@ -327,11 +328,11 @@ export default function App() {
         redraw();
     }
 
-    function updateDebugData() {
+    function updateDebugData( lines ) {
         
         setDebugData( ( oldData ) => {
 
-            var updatedData = stateRef.cuyrrentLines.map( ( line ) => {
+            var updatedData = lines.map( ( line ) => {
 
                 const info = line.length + "  α=" + line.angle + "°"
 
