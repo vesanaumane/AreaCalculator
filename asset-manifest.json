@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/AreaCalculator/static/css/main.4a0fdd00.css",
-    "main.js": "/AreaCalculator/static/js/main.752a3f47.js",
+    "main.js": "/AreaCalculator/static/js/main.d4368f44.js",
     "index.html": "/AreaCalculator/index.html",
     "main.4a0fdd00.css.map": "/AreaCalculator/static/css/main.4a0fdd00.css.map",
-    "main.752a3f47.js.map": "/AreaCalculator/static/js/main.752a3f47.js.map"
+    "main.d4368f44.js.map": "/AreaCalculator/static/js/main.d4368f44.js.map"
   },
   "entrypoints": [
     "static/css/main.4a0fdd00.css",
-    "static/js/main.752a3f47.js"
+    "static/js/main.d4368f44.js"
   ]
 }
