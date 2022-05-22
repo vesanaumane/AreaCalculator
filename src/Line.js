@@ -1,5 +1,5 @@
 // Represents one line.
-export default class Line {
+export class Line {
 
     constructor( start, end, id ) {
         this.start = start;
@@ -220,6 +220,15 @@ function roundDouble( double, decimals ) {
     } else {
         return Math.round( double );
     }
+}
+
+export function comparePoints( p1, p2 ) {
+
+    if( roundDouble( p1.x, 10 ) === roundDouble ( p2.x, 10 ) && roundDouble( p1.y, 10 ) === roundDouble ( p2.y, 10 ) ) {
+        return true;
+    }
+
+    return false;
 }
 
 // Calculate offsets for the coordinates, when setting new length.

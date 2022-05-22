@@ -1,5 +1,5 @@
 import "./App.css";
-import Line from "./Line.js"
+import { Line, comparePoints } from "./Line.js"
 import LineInfos from "./LineInfos.js"
 import React from 'react';
 import { useEffect, useRef, useState } from "react";
@@ -47,11 +47,6 @@ export default function App() {
 
     // Corners when creating new shape.
     const [ createShapeCorners, setCreateShapeCorners ] = useState( 4 );
-
-
-    useEffect( () => {
-        console.log( "test app" )
-    });
 
     // Call back for getting the data from input fields.
     function dataFromInputFields ( input ) {
@@ -239,6 +234,9 @@ export default function App() {
 
         // Stop drawing.
         setIsDrawingAllowed( false );
+
+        // Calculate area.
+        calculateArea( lines );
     }
 
     // Create a last line between the first line's start
@@ -248,13 +246,20 @@ export default function App() {
         // Get new line coordinates.
         var line = getNewLine( 100, 90, lines );
 
-        // Stop drawing if lines create a closed loop.
-        if( lines.length > 0 && ( line.end.x == lines[ 0 ].start.x && line.end.y == lines[ 0 ].start.y ) ) {
+        // Stop drawing if lines create a closed loop. line.end.x == lines[ 0 ].start.x && line.end.y == lines[ 0 ].start.y
+        var lastLine = false;
+        if( lines.length > 0 && ( comparePoints( line.end, lines[ 0 ].start )  ) ) {
             setIsDrawingAllowed( false );
+            lastLine = true;
         }
 
         // Create the last line and save.
         saveNewLine( line );
+
+        // Calculate area.
+        if( lastLine ) {
+            calculateArea( lines );
+        }
     }
 
     // Get a new line that is connected to the previous line.
