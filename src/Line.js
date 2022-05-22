@@ -49,12 +49,9 @@ export default class Line {
         
         if( this.angle === newAngle ) return;
 
-        // Calculate how much the angle changes.
-        var dA = newAngle;
-
         // Calculate new x and y.
-        var newX = this.start.x + this.length * Math.cos( angleToRadians( dA ) );
-        var newY = this.start.y + this.length * Math.sin( angleToRadians( dA ) );
+        var newX = this.start.x + this.length * Math.cos( angleToRadians( newAngle ) );
+        var newY = this.start.y + this.length * Math.sin( angleToRadians( newAngle ) );
 
         // Keep the starting point as is, modify the end point.
         this.end = { x: newX, y: newY };
@@ -193,7 +190,7 @@ function findAngle( line, otherLine ) {
     var angle = Math.atan2( dAx * dBy - dAy * dBx, dAx * dBx + dAy * dBy );
 
     // Return in degress.
-    return roundDouble( angleToDegrees( angle ), 10 );
+    return roundDouble( angleToDegrees( angle ), 5 );
 }
 
 
@@ -216,7 +213,7 @@ function roundDouble( double, decimals ) {
     // Round.
     if( decimals > 0 )
     {
-        var decimalPart = 10 * decimals;
+        var decimalPart =  Math.pow( 10, decimals );
         return Math.round( ( double + Number.EPSILON ) * decimalPart ) / decimalPart;
     } else {
         return Math.round( double );

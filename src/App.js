@@ -302,8 +302,15 @@ export default function App() {
             result += arr;
         });
 
+        // Area is not negative. Sign depends on which direction the shape was drawn.
+        result = Math.abs( result );
+
+        // Round the result to 3 decimals
+        var decimalPart = Math.pow( 10, 3 );
+        result =  Math.round( ( result + Number.EPSILON ) * decimalPart ) / decimalPart;
+
         // Set the area.
-        setArea( Math.abs( result ) );
+        setArea( result  );
     }
 
     // Save the line.
