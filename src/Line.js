@@ -193,13 +193,13 @@ function findAngle( line, otherLine ) {
     var angle = Math.atan2( dAx * dBy - dAy * dBx, dAx * dBx + dAy * dBy );
 
     // Return in degress.
-    return angleToDegrees( angle );
+    return roundDouble( angleToDegrees( angle ), 10 );
 }
 
 
 function calculateLength( start, end ) {
 
-    return Math.sqrt( Math.pow( start.x - end.x, 2 ) + Math.pow( start.y - end.y, 2 ) );
+    return roundDouble( Math.sqrt( Math.pow( start.x - end.x, 2 ) + Math.pow( start.y - end.y, 2 ) ), 10 );
 }
 
 function angleToRadians( angleInDegrees ) {
