@@ -42,9 +42,16 @@ export default function App() {
     // Zoom-level.
     const [ zoom, setZoom ] = useState( 1 );
 
+    // Canvas width.
+    const [ canvasWidth, setCanvasWidth ] = useState( window.innerWidth );
+
     // Current state.
-    const stateRef = useRef();
-    stateRef.currentLines = lines;
+   /* const stateRef = useRef();
+    stateRef.currentLines = lines; */
+
+    useEffect( () => {
+        console.log( "test app" )
+    });
 
     // Call back for getting the data from input fields.
     function dataFromInputFields ( input ) {
@@ -96,8 +103,8 @@ export default function App() {
             return oldVersion + 1;
         } );
 
-        
         redraw();
+        
     }
 
      // Call back for redrawing the canvas.
@@ -121,7 +128,7 @@ export default function App() {
 
         // Clear canvas.
         const ctx = canvas.current.getContext( "2d" );
-        ctx.clearRect( 0, 0, canvas.current.width, canvas.current.height );
+        ctx.clearRect( 0, 0, canvas.current.width - 2, canvas.current.height );
 
         // Draw the line.
         ctx.beginPath();
@@ -135,7 +142,7 @@ export default function App() {
            line.draw( ctx );
         });
 
-    }, [ isDrawing, isDrawingAllowed, start, end, requestRedraw ]);
+    }, [ isDrawing, isDrawingAllowed, start, end, requestRedraw, lines ]);
 
     // When mouse is down, start drawing.
     function handleMouseDown(e) {
@@ -363,7 +370,6 @@ export default function App() {
     return (
        
         <div className="App">
-            <h1>Area Calculator</h1>
             <div className="drawing">
                 <div className="drawingboard">
                     <canvas
@@ -374,30 +380,33 @@ export default function App() {
                         onTouchStart={handleTouchStart}
                         onTouchMove={handleTouchMove}
                         onTouchEnd={handleTouchEnd}
-                        width="400"
-                        height="400"
+                        width={canvasWidth}
+                        height="300"
                         style={{ border: "1px solid #ccc" }
                         }
                     ></canvas>
                 </div>
                 <div className="buttons">
+                    
+                    <button className="new-line-button" disabled={!isDrawingAllowed} onClick={ () => handleOnClickAddNewLine()}>
+                        Add line
+                    </button>
+                    <button className="enddrawing_button" disabled={!isDrawingAllowed} onClick={ () => handleOnClickEnd()}>
+                        Add last line
+                    </button>
+                    <button className="calc_area_button" disabled={isDrawingAllowed} onClick={ () => handleOnClickArea()}>
+                        Calculate area
+                    </button>
                     <button className="zoom-in-button" onClick={ () => handleOnClickZoomIn()}>
                         Zoom +
                     </button>
                     <button className="zoom-in-button" onClick={ () => handleOnClickZoomOut()}>
                         Zoom -
                     </button>
-                    <button className="new-line-button" disabled={!isDrawingAllowed} onClick={ () => handleOnClickAddNewLine()}>
-                        Add new line
-                    </button>
-                    <button className="enddrawing_button" disabled={!isDrawingAllowed} onClick={ () => handleOnClickEnd()}>
-                        Finish drawing
-                    </button>
-                    <button className="calc_area_button" disabled={isDrawingAllowed} onClick={ () => handleOnClickArea()}>
-                        Calculate area
-                    </button>
-                    <label>{area}</label>
                 </div>
+                <div className="area" >
+                        <label >Area: {area}</label>
+                    </div>
                 <LineInfos lines={lines} linesVersion={linesVersion} inputCallback={ dataFromInputFields } />
                 <div className="debug-data">
                     <ul className="debug" >{debugData}</ul>

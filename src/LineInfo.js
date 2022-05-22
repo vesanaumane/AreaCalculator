@@ -1,51 +1,36 @@
 import React from 'react';
+import { useState, useEffect } from "react";
 
-export default class LineInfo extends React.Component {
+export default function LineInfo( { inputCallback, line } ) {
 
-    constructor( props ) {
-        super( props );
-        this.state = {
-            id: props.line.id,
-            line: props.line,
-            length: props.line.length,
-            angle: props.line.angle,
-            inputCallback: props.inputCallback
-        };
-    }
+    // Line.
+    // const [ lineData, setLineData ] = useState( line );
+    const [ length, setLength ] = useState( line.length );
+    const [ angle, setAngle ] = useState( line.angle );
 
-    handleLengthInput( evt ) {
+    function handleLengthInput( evt ) {
         const input = evt.target.value;
-        this.state.length = input;
+        const parseLength = parseFloat( input );
+        setLength( parseLength );
     }
 
-    handleAngleInput( evt ) {
+    function handleAngleInput( evt ) {
         const input = evt.target.value;
-        this.state.angle = input;
+        setAngle( parseFloat( input ) );
     }
 
-    handleOnClick() {
-        this.state.inputCallback( { id: this.state.line.id, length: this.state.length, angle: this.state.angle } );
+    function handleOnClick() {
+        inputCallback( { id: line.id, length: length, angle: angle } );
     }
 
-    updateLine( newLine ) {
-
-        const oldLine = this.state.line;
-        oldLine.line = newLine;
-        oldLine.length = newLine.length;
-        oldLine.angle = newLine.angle;
-
-        this.setState( oldLine );
-    }
-
-    render() { 
-        return(
-            <li key={ this.state.line.id }>
+    return(
+            <div key={ line.id } className="lineInfo">
                 <div className="lineInfo">
-                    <input type="number" step="0.01" defaultValue={this.state.length} onChange={ evt => { this.handleLengthInput( evt ) } } />
-                    <input type="number" step="1" min={-360} max={360} defaultValue={this.state.angle} onChange={ evt => { this.handleAngleInput( evt ) } } />
-                    <button onClick={ () => { this.handleOnClick() }}>Save</button>
+                    <label>{line.id}. </label>
+                    <input type="number" step="0.01" defaultValue={line.length} onChange={ evt => { handleLengthInput( evt ) } } />
+                    <input type="number" step="1" min={-360} max={360} defaultValue={line.angle} onChange={ evt => { handleAngleInput( evt ) } } />
+                    <button onClick={ () => { handleOnClick() }}>Save</button>
                 </div>
-            </li> 
+            </div> 
         );
-    }
 }

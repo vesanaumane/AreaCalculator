@@ -1,11 +1,10 @@
 .App {
   font-family: sans-serif;
-  text-align: center;
 }
 
 .drawing {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
 }
 
 .drawingboard {
@@ -15,9 +14,22 @@
 
 .buttons {
   display: flex;
-  margin-left: 20px;
-  flex-direction: column;
-  padding-top: 0px;
+  margin-left: 10pt;
+  margin-right: 10pt;
+  flex-direction: row;
+  padding-top: 5pt;
+  padding-left: 5pt;
+  width: 100%;
+}
+
+.area {
+  display: flex;
+  margin-left: 10pt;
+  margin-right: 10pt;
+  padding-left: 5pt;
+  flex-direction: row;
+  padding-top: 5pt;
+  width: 100%;
 }
 
 .debug-data {
@@ -28,10 +40,27 @@
 ul.debug {
   list-style-type: decimal;
   list-style-position: inside;
-  margin: 0;
-  padding: 6pt;
+  margin-left: 5pt;
+  padding: 0;
 }
 
 ul.debug li {
+  padding: 0;
+}
+
+.lineinfos {
+  display: flex;
+  flex-direction: column;
+  justify-content: left;
+  vertical-align: left;
+  margin-bottom: 10pt;
+  margin-top: 10pt;
+  margin-left: 5pt;
+  padding: 0;
+}
+
+.lineinfo {
+  float: left;
+  margin: 5pt;
   padding: 5pt;
 }

@@ -22,9 +22,7 @@ export default class Line {
         if( this.length === newLength ) return;
 
         // Make shorter variable names.
-        var x1 = this.start.x;
         var x2 = this.end.x;
-        var y1 = this.start.y;
         var y2 = this.end.y;
 
         // Calculate delta for x and y.
@@ -126,35 +124,33 @@ export default class Line {
 
         //Calculate coordinate deltas.
         var dx = x2 - x1;
-        var dy = y2 - y1;   
-
-        // Calculate line length.
-        var len = Math.sqrt(dx*dx+dy*dy);
+        var dy = y2 - y1;
 
         // Make the text to draw as: l: <length> a: <angle>
         var textToDraw = roundDouble( this.length, 2 ) + "  α=" + roundDouble( this.angle, 0 ) + "°";
 
         // Make sure the text fits to the line.
+        var len = Math.round( this.length )
 		var avail = len - 2 * padding;
-		if( ctx.measureText && ctx.measureText(textToDraw).width > avail ){
-			while (textToDraw && ctx.measureText(textToDraw+"…").width > avail) {
-                textToDraw = textToDraw.slice(0,-1);
+		if( ctx.measureText && ctx.measureText( textToDraw ).width > avail ){
+			while( textToDraw && ctx.measureText( textToDraw + "…" ).width > avail ) {
+                textToDraw = textToDraw.slice( 0, -1 );
             }
 			textToDraw += "…";
 		}
     
 
 		// Keep text upright
-		var angle = Math.atan2( dy,dx );
+        var angle = Math.atan2( dy,dx );
         var p;
-		if (angle < -Math.PI/2 || angle > Math.PI/2 ){
-			p = p1;
-			p1 = p2;
-			p2 = p;
-			dx *= -1;
-			dy *= -1;
-			angle -= Math.PI;
-		}
+        if (angle < -Math.PI/2 || angle > Math.PI/2 ){
+            p = p1;
+            p1 = p2;
+            p2 = p;
+            dx *= -1;
+            dy *= -1;
+            angle -= Math.PI;
+        }
 
         // Add padding from the starting point.
         var pad;
