@@ -127,7 +127,7 @@ export default class Line {
         var dy = y2 - y1;
 
         // Make the text to draw as: l: <length> a: <angle>
-        var textToDraw = roundDouble( this.length, 2 ) + "  α=" + roundDouble( this.angle, 0 ) + "°";
+        var textToDraw = this.id + ".  l=" + roundDouble( this.length, 2 ) + "  α=" + roundDouble( this.angle, 0 ) + "°";
 
         // Make sure the text fits to the line.
         var len = Math.round( this.length )
@@ -184,9 +184,15 @@ function findAngle( line, otherLine ) {
     var dBx = otherLine.end.x - otherLine.start.x;
     var dBy = otherLine.end.y - otherLine.start.y;
     var angle = Math.atan2( dAx * dBy - dAy * dBx, dAx * dBx + dAy * dBy );
+    
+    // Convert to degrees.
+    angle = angleToDegrees( angle );
 
-    // Return in degress.
-    return roundDouble( angleToDegrees( angle ), 5 );
+    // Use only positive angles.
+    angle = angle < 0 ? angle + 360 : angle;
+
+    // Return in 5 decimal accuracy.
+    return roundDouble( angle, 5 );
 }
 
 
@@ -196,12 +202,12 @@ function calculateLength( start, end ) {
 }
 
 function angleToRadians( angleInDegrees ) {
-    return  angleInDegrees  * ( Math.PI / 180.0 );
+    return  angleInDegrees  * (  Math.PI / 180.0 );
 }
 
 
 function angleToDegrees( angleInRadians ) {
-    return angleInRadians * ( 180.0 / Math.PI );
+    return angleInRadians * ( 180.0 /(  Math.PI ) );
 }
 
 function roundDouble( double, decimals ) {

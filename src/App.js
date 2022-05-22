@@ -39,15 +39,15 @@ export default function App() {
     // Boolean for triggering redraw.
     const [ debugData, setDebugData ] = useState( Array() );
 
-    // Zoom-level.
-    const [ zoom, setZoom ] = useState( 1 );
-
     // Canvas width.
     const [ canvasWidth, setCanvasWidth ] = useState( window.innerWidth );
 
-    // Current state.
-   /* const stateRef = useRef();
-    stateRef.currentLines = lines; */
+    // Canvas height.
+    const [ canvasHeight, setCanvasHeight ] = useState( Math.round( window.innerHeight / 2.5 ) );
+
+    // Corners when creating new shape.
+    const [ createShapeCorners, setCreateShapeCorners ] = useState( 4 );
+
 
     useEffect( () => {
         console.log( "test app" )
@@ -94,6 +94,11 @@ export default function App() {
                 }
             }
 
+            // Calculate area if drawing is finished.
+            if( !isDrawingAllowed ) {
+                calculateArea( newLines );
+            }
+
             updateDebugData( newLines );
             return newLines;
 
@@ -104,6 +109,8 @@ export default function App() {
         } );
 
         redraw();
+
+        
         
     }
 
@@ -238,9 +245,21 @@ export default function App() {
     // and the previous line's end point. 
     function handleOnClickAddNewLine() {
         
-        // Get the lines.
-        const previousLines = lines.slice();
+        // Get new line coordinates.
+        var line = getNewLine( 100, 90, lines );
 
+        // Stop drawing if lines create a closed loop.
+        if( lines.length > 0 && ( line.end.x == lines[ 0 ].start.x && line.end.y == lines[ 0 ].start.y ) ) {
+            setIsDrawingAllowed( false );
+        }
+
+        // Create the last line and save.
+        saveNewLine( line );
+    }
+
+    // Get a new line that is connected to the previous line.
+    function getNewLine(  length, angleToPrevious, previousLines  ) {
+        
         // Get new line coordinates.
         var line;
         if( previousLines.length == 0 ) {
@@ -248,7 +267,7 @@ export default function App() {
             // Create the first line.
             const start = { x: 50, y: 50 };
             const end = { x: 150, y: 50 };
-            line = new Line( start, end, lines.length + 1 )
+            line = new Line( start, end, previousLines.length + 1 )
             line.setNewAngle( 0 );
 
         } else {
@@ -258,30 +277,34 @@ export default function App() {
             // Get the previous line.
             const previousLine = previousLines[ previousLines.length - 1 ];
 
-            // Create the line backwards to the previous line.
-            line = new Line( previousLine.end, previousLine.start, lines.length + 1 )
+            // Create the line on top of the previous line. 
+            // Change the end a little bit, so that it is not on top of the previous line.
+            line = new Line(  previousLine.end, previousLine.start, previousLines.length + 1 )
 
-            // Turn 90 degrees relative to the previous line.
-            var lineAngle = previousLine.angle + 90;
-            lineAngle = lineAngle > 360 ? lineAngle - 360 : lineAngle;
-            lineAngle = lineAngle < -360 ? lineAngle + 360 : lineAngle;
+            // Turn relative to the previous line.
+            var lineAngle = previousLine.angle + angleToPrevious;
+            lineAngle = lineAngle >= 360 ? lineAngle - 360 : lineAngle;
+            lineAngle = lineAngle < 0 ? lineAngle + 360 : lineAngle;
             line.setNewAngle( lineAngle );
 
-            // Set length 100.
-            line.setNewLength( 100 );
-
-             // Stop drawing if lines create a closed loop.
-            if( line.end.x == previousLines[ 0 ].start.x && line.end.y == previousLines[ 0 ].start.y ) {
-                setIsDrawingAllowed( false );
-            }
+            // Set length.
+            line.setNewLength( length );
         }
 
-        // Create the last line and save.
-        saveNewLine( line );
-        redraw();
+        return line;
     }
 
-    // Calculate area. https://www.mathsisfun.com/geometry/area-irregular-polygons.html
+    // Save the line.
+    function saveNewLine( line ) {
+
+        const previousLines = lines.slice();
+        previousLines.push( line );
+        setLines( previousLines );
+        setLinesVersion( linesVersion + 1 );
+        updateDebugData( previousLines );
+    }
+
+    
     function handleOnClickArea() {
         
         // Do nothing if there is one or no lines.
@@ -290,47 +313,44 @@ export default function App() {
             return;
         }
 
-        // Calculate area.
-        var areas = new Array();
-        lines.forEach( line  => {
-            
-            // Calculate average height between the line start and end points.
-            var avgHeight = ( line.start.y + line.end.y ) / 2;
-            
-            // Difference in x axis.
-            var deltaX = line.end.x - line.start.x;
-
-            // Calculate area of this polygon and save it.
-            areas.push( avgHeight * deltaX );
-
-        } );
-
-        // Sum the areas.
-        var result = 0;
-        areas.forEach( arr => {
-            result += arr;
-        });
-
-        // Area is not negative. Sign depends on which direction the shape was drawn.
-        result = Math.abs( result );
-
-        // Round the result to 3 decimals
-        var decimalPart = Math.pow( 10, 3 );
-        result =  Math.round( ( result + Number.EPSILON ) * decimalPart ) / decimalPart;
-
-        // Set the area.
-        setArea( result  );
+        calculateArea();
+       
     }
 
-    // Save the line.
-    function saveNewLine( line ) {
-        const previousLines = lines.slice();
-        previousLines.push( line );
-        setLines( previousLines );
-        setLinesVersion( linesVersion + 1 );
-        updateDebugData( previousLines );
-    }
+    // Calculate area. https://www.mathsisfun.com/geometry/area-irregular-polygons.html
+    function calculateArea( areaLines ) {
 
+         // Calculate area.
+         var areas = new Array();
+         areaLines.forEach( line  => {
+             
+             // Calculate average height between the line start and end points.
+             var avgHeight = ( line.start.y + line.end.y ) / 2;
+             
+             // Difference in x axis.
+             var deltaX = line.end.x - line.start.x;
+ 
+             // Calculate area of this polygon and save it.
+             areas.push( avgHeight * deltaX );
+ 
+         } );
+ 
+         // Sum the areas.
+         var result = 0;
+         areas.forEach( arr => {
+             result += arr;
+         });
+ 
+         // Area is not negative. Sign depends on which direction the shape was drawn.
+         result = Math.abs( result );
+ 
+         // Round the result to 3 decimals
+         var decimalPart = Math.pow( 10, 3 );
+         result =  Math.round( ( result + Number.EPSILON ) * decimalPart ) / decimalPart;
+ 
+         // Set the area.
+         setArea( result  );
+    }
 
     function handleOnClickZoomIn() {
         const ctx = canvas.current.getContext( "2d" );
@@ -342,6 +362,16 @@ export default function App() {
         const ctx = canvas.current.getContext( "2d" );
         ctx.scale( 0.9, 0.9 );
         redraw();
+    }
+
+    function handleOnClickCenter() {
+
+        // Center lines.
+        //const linesCopy = lines.slice();
+        // const centeredLines = centerLines( linesCopy );
+
+        // Save.
+        //setLines( centeredLines );
     }
 
     function updateDebugData( lines ) {
@@ -363,11 +393,90 @@ export default function App() {
         } ); 
     }
 
+    function handleCreateShapeInput( evt ) {
+        const input = evt.target.value;
+        setCreateShapeCorners( parseFloat( input ) );
+    }
+
+    // Create a new shape.
+    function handleCreateShapeClick() {
+
+        // Calculate angle for corners.
+        const angle = 360 / createShapeCorners;
+
+        // Calculate length. If there are many cornes, the picture will be huge.
+        var length = 100;
+        if( createShapeCorners > 5 ) {
+
+            // Reduce length by 5 per additional corner after 5 corners.
+            length = length - 10 * ( createShapeCorners - 5 );
+
+            // Use 20 as minimum lenght.
+            length = length < 20 ?  20 : length;    
+        }
+
+        // Create the lines.
+        const newLines = Array();
+        for( var i = 0; i < createShapeCorners; ++ i ) {
+            newLines.push( getNewLine(  length, angle, newLines ) );
+        }
+
+        // Make sure the last and the first line are connected.
+        newLines[ 0 ].setNewStartPoint( newLines[ newLines.length - 1 ].end );
+
+        // Put to center.
+        //const centeredLines = centerLines( newLines );
+
+        // No more drawing.
+        setIsDrawingAllowed( false );
+
+        // Save.
+        setLines( newLines );
+
+        // Calculate area.
+        calculateArea( newLines );
+    }
+
+    function centerLines( previousLines ) {
+
+        // Calculate the weigth point of the lines now.
+        var sumOfX = 0;
+        var sumOfY = 0;
+        previousLines.forEach( line => {
+            sumOfX += line.start.x;
+            sumOfY += line.start.y;
+        });
+
+        // Current weight point.
+        var weightPoint = { x: sumOfX / previousLines.length , y: sumOfY / previousLines.length };
+
+        // Canvas middle point.
+        var middlePoint = { x: canvasWidth / 2, y: canvasHeight / 2 };
+
+        // Calculate diff.
+        const dX = Math.round( middlePoint.x - weightPoint.x);
+        const dY = Math.round( middlePoint.y - weightPoint.y );
+
+        // Adjust lines.
+        const centeredLines = previousLines.slice();
+        centeredLines.forEach( line => {
+            line.start.x += dX;
+            line.start.y += dY;
+            line.end.x += dX;
+            line.end.y += dY;
+        });
+
+        // Return.
+        return centeredLines;
+    }
+
     // Map touch envents to mouse event handlers.
     function handleTouchStart( event ) { handleMouseDown( event.touches[0]) }
     function handleTouchMove( event ) { handleMouseMove(event.touches[0]); event.preventDefault(); }
     function handleTouchEnd( event ) { handleMouseUp(event.changedTouches[0]) }
 
+    // Select all when clicking input.
+    const handleFocus = (event) => event.target.select();
 
     return (
        
@@ -383,7 +492,7 @@ export default function App() {
                         onTouchMove={handleTouchMove}
                         onTouchEnd={handleTouchEnd}
                         width={canvasWidth}
-                        height="300"
+                        height={canvasHeight}
                         style={{ border: "1px solid #ccc" }
                         }
                     ></canvas>
@@ -399,16 +508,34 @@ export default function App() {
                     <button className="calc_area_button" disabled={isDrawingAllowed} onClick={ () => handleOnClickArea()}>
                         Calculate area
                     </button>
-                    <button className="zoom-in-button" onClick={ () => handleOnClickZoomIn()}>
+                    <button  onClick={ () => handleOnClickZoomIn()}>
                         Zoom +
                     </button>
-                    <button className="zoom-in-button" onClick={ () => handleOnClickZoomOut()}>
+                    <button  onClick={ () => handleOnClickZoomOut()}>
                         Zoom -
                     </button>
+                    <button  onClick={ () => handleOnClickCenter()}>
+                        Center
+                    </button>
+                </div>
+                <div className="createshape" >
+                    <label>Add multiple lines with corners: </label>
+                    <input 
+                        type="number"
+                        step="1" 
+                        min={3}
+                        disabled={lines.length > 0}
+                        defaultValue={createShapeCorners}
+                        onFocus={handleFocus} 
+                        onChange={ evt => { handleCreateShapeInput( evt ) } }
+                    />
+                    <button
+                        disabled={lines.length > 0} 
+                        onClick={ () => { handleCreateShapeClick() }}>Create</button>
                 </div>
                 <div className="area" >
                         <label >Area: {area}</label>
-                    </div>
+                </div>
                 <LineInfos lines={lines} linesVersion={linesVersion} inputCallback={ dataFromInputFields } />
                 <div className="debug-data">
                     <ul className="debug" >{debugData}</ul>

@@ -10,8 +10,7 @@ export default function LineInfo( { inputCallback, line } ) {
 
     function handleLengthInput( evt ) {
         const input = evt.target.value;
-        const parseLength = parseFloat( input );
-        setLength( parseLength );
+        setLength( parseFloat( input ) );
     }
 
     function handleAngleInput( evt ) {
@@ -23,6 +22,7 @@ export default function LineInfo( { inputCallback, line } ) {
         inputCallback( { id: line.id, length: length, angle: angle } );
     }
 
+    // Select all when clicking input.
     const handleFocus = (event) => event.target.select();
 
     return(

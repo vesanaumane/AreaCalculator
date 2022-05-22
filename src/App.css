@@ -22,6 +22,27 @@
   width: 100%;
 }
 
+.buttons button {
+  margin-right: 2pt;
+}
+
+.createshape {
+  display: flex;
+  margin-top: 10pt;
+  margin-left: 10pt;
+  margin-right: 10pt;
+  flex-direction: row;
+  padding-top: 5pt;
+  padding-left: 5pt;
+  width: 100%;
+}
+
+.createshape input {
+  width: 10%;
+  margin-left: 5pt;
+  margin-right: 2pt
+}
+
 .area {
   display: flex;
   margin-left: 10pt;
