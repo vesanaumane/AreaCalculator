@@ -5,6 +5,7 @@ export default class LineInfo extends React.Component {
     constructor( props ) {
         super( props );
         this.state = {
+            id: props.line.id,
             line: props.line,
             length: props.line.length,
             angle: props.line.angle,
@@ -24,6 +25,16 @@ export default class LineInfo extends React.Component {
 
     handleOnClick() {
         this.state.inputCallback( { id: this.state.line.id, length: this.state.length, angle: this.state.angle } );
+    }
+
+    updateLine( newLine ) {
+
+        const oldLine = this.state.line;
+        oldLine.line = newLine;
+        oldLine.length = newLine.length;
+        oldLine.angle = newLine.angle;
+
+        this.setState( oldLine );
     }
 
     render() { 

@@ -19,3 +19,19 @@
   flex-direction: column;
   padding-top: 0px;
 }
+
+.debug-data {
+  text-align: left;
+  align-items: left;
+}
+
+ul.debug {
+  list-style-type: decimal;
+  list-style-position: inside;
+  margin: 0;
+  padding: 6pt;
+}
+
+ul.debug li {
+  padding: 5pt;
+}

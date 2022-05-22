@@ -27,14 +27,24 @@ export default function App() {
     // All the lines.
     const [ lines, setLines ] = useState( Array() );
 
+    // Version number for the lines.
+    const [ linesVersion, setLinesVersion ] = useState( 0 );
+
     // Area.
     const [ area, setArea ] = useState( 0 );
 
     // Boolean for triggering redraw.
     const [ requestRedraw, setRequestRedraw ] = useState( "0" );
 
+    // Boolean for triggering redraw.
+    const [ debugData, setDebugData ] = useState( Array() );
+
     // Zoom-level.
     const [ zoom, setZoom ] = useState( 1 );
+
+    // Current state.
+    const stateRef = useRef();
+    stateRef.cuyrrentLines = lines;
 
     // Call back for getting the data from input fields.
     function dataFromInputFields ( input ) {
@@ -81,6 +91,11 @@ export default function App() {
 
         } );
 
+        setLinesVersion( ( oldVersion ) => {
+            return oldVersion + 1;
+        } );
+
+        updateDebugData();
         redraw();
     }
 
@@ -223,8 +238,8 @@ export default function App() {
         if( previousLines.length == 0 ) {
 
             // Create the first line.
-            const start = { x: 100, y: 200 };
-            const end = { x: 100, y:100 };
+            const start = { x: 200, y: 200 };
+            const end = { x: 100, y:200 };
             line = new Line( start, end, lines.length + 1 )
 
         } else {
@@ -295,6 +310,8 @@ export default function App() {
         const previousLines = lines.slice();
         previousLines.push( line );
         setLines( previousLines );
+        setLinesVersion( linesVersion + 1 );
+        updateDebugData();
     }
 
 
@@ -308,6 +325,25 @@ export default function App() {
         const ctx = canvas.current.getContext( "2d" );
         ctx.scale( 0.9, 0.9 );
         redraw();
+    }
+
+    function updateDebugData() {
+        
+        setDebugData( ( oldData ) => {
+
+            var updatedData = stateRef.cuyrrentLines.map( ( line ) => {
+
+                const info = line.length + "  α=" + line.angle + "°"
+
+                return (
+                    <li key={line.id}>
+                        <label>{info}</label>
+                    </li>
+                )
+            } );
+
+            return updatedData;
+        } ); 
     }
 
     // Map touch envents to mouse event handlers.
@@ -354,7 +390,10 @@ export default function App() {
                     </button>
                     <label>{area}</label>
                 </div>
-                <LineInfos lines={lines} inputCallback={ dataFromInputFields }/>
+                <LineInfos lines={lines} linesVersion={linesVersion} inputCallback={ dataFromInputFields } />
+                <div className="debug-data">
+                    <ul className="debug" >{debugData}</ul>
+                </div>
             </div>
             
         </div>
