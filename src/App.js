@@ -304,19 +304,6 @@ export default function App() {
         updateDebugData( previousLines );
     }
 
-    
-    function handleOnClickArea() {
-        
-        // Do nothing if there is one or no lines.
-        if( isDrawingAllowed ) {
-            setArea( "Finish drawing first" );
-            return;
-        }
-
-        calculateArea();
-       
-    }
-
     // Calculate area. https://www.mathsisfun.com/geometry/area-irregular-polygons.html
     function calculateArea( areaLines ) {
 
@@ -504,9 +491,6 @@ export default function App() {
                     </button>
                     <button className="enddrawing_button" disabled={!isDrawingAllowed} onClick={ () => handleOnClickEnd()}>
                         Add last line
-                    </button>
-                    <button className="calc_area_button" disabled={isDrawingAllowed} onClick={ () => handleOnClickArea()}>
-                        Calculate area
                     </button>
                     <button  onClick={ () => handleOnClickZoomIn()}>
                         Zoom +
