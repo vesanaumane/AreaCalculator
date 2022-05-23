@@ -9,8 +9,19 @@
 
 .drawingboard {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
+  align-items: center;
+  max-width: 100%;
+  height: 42vh;
+  overflow: auto;
+  flex-shrink: 0;
 }
+
+.drawingboard canvas {
+  margin-left: 3pt;
+  margin-right: auto;
+}
+
 
 .buttons {
   display: flex;
@@ -84,4 +95,8 @@ ul.debug li {
   float: left;
   margin: 5pt;
   padding: 5pt;
+}
+
+.saveall {
+  margin-left: 193pt;
 }

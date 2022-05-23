@@ -7,6 +7,10 @@ import { useEffect, useRef, useState } from "react";
 
 export default function App() {
 
+    // Canvas default size.
+    const defaultWidth = window.innerWidth - 20;
+    const defaultHeight = Math.round( window.innerHeight / 2.5 );
+
     // Canvas.
     const canvas = useRef();
 
@@ -40,85 +44,15 @@ export default function App() {
     const [ debugData, setDebugData ] = useState( Array() );
 
     // Canvas width.
-    const [ canvasWidth, setCanvasWidth ] = useState( window.innerWidth );
+    const [ canvasWidth, setCanvasWidth ] = useState( defaultWidth );
 
     // Canvas height.
-    const [ canvasHeight, setCanvasHeight ] = useState( Math.round( window.innerHeight / 2.5 ) );
+    const [ canvasHeight, setCanvasHeight ] = useState( defaultHeight );
 
     // Corners when creating new shape.
     const [ createShapeCorners, setCreateShapeCorners ] = useState( 4 );
 
-    // Call back for getting the data from input fields.
-    function dataFromInputFields ( input ) {
 
-        setLines( ( oldLines ) => {
-
-            const newLines = oldLines;
-
-            // Find the line and adjust it's length and angle.
-            for( var i = 0; 0 < newLines.length; ++i ) {
-                
-                if( newLines[ i ].id === input.id ) {
-                    
-                    // Save the old coordinates.
-                    var oldEnd = newLines[ i ].end;
-
-                    // Set new length for this line.
-                    newLines[ i ].setNewLength( input.length );
-
-                    // Set new angle for this line.
-                    newLines[ i ].setNewAngle( input.angle );
-
-                    // Adjust the next line.
-                    if( newLines.length > 1 ) {
-
-                        // If not last, adjust the next lines starting point.
-                        if( i < newLines.length - 1 ) {
-                            newLines[ i + 1 ].setNewStartPoint( newLines[ i ].end );
-                        } else {
-
-                            // If last and there are more than 2 lines and the lines were actually connected, 
-                            //adjust the first lines starting point
-                            if( newLines.length > 2 && oldLines[ 0 ].start.x == oldEnd.x && oldLines[ 0 ].start.y == oldEnd.y ) {
-                                newLines[ 0 ].setNewStartPoint( newLines[ i ].end );
-                            }
-                        }
-                    }
-                    
-                    break;
-                }
-            }
-
-            // Calculate area if drawing is finished.
-            if( !isDrawingAllowed ) {
-                calculateArea( newLines );
-            }
-
-            updateDebugData( newLines );
-            return newLines;
-
-        } );
-
-        setLinesVersion( ( oldVersion ) => {
-            return oldVersion + 1;
-        } );
-
-        redraw();
-
-        
-        
-    }
-
-     // Call back for redrawing the canvas.
-     function redraw () {
-        
-        console.log( "Redraw" );
-
-        setRequestRedraw( ( oldValue ) => {
-            const newValue = oldValue + 1;
-            return newValue;
-        } );
-    }
 
     // Draw effect – each time isDrawing,
     // start or end change, automatically
@@ -131,6 +65,10 @@ export default function App() {
         // Clear canvas.
         const ctx = canvas.current.getContext( "2d" );
         ctx.clearRect( 0, 0, canvas.current.width - 2, canvas.current.height );
+
+        // Resize canvas.
+        canvas.current.width = canvasWidth;
+        canvas.current.height = canvasHeight;
 
         // Draw the line.
         ctx.beginPath();
@@ -229,7 +167,10 @@ export default function App() {
         const latestLine = previousLines[ previousLines.length - 1 ];
 
         // Create the last line and save.
-        const line = new Line( latestLine.end, firstLine.start, lines.length + 1 )
+        const line = new Line( 
+                latestLine.end , 
+                firstLine.start, 
+                lines.length + 1 )
         saveNewLine( line );
 
         // Stop drawing.
@@ -244,7 +185,7 @@ export default function App() {
     function handleOnClickAddNewLine() {
         
         // Get new line coordinates.
-        var line = getNewLine( 100, 90, lines );
+        var line = getNewLine( 100, 60, lines );
 
         // Stop drawing if lines create a closed loop. line.end.x == lines[ 0 ].start.x && line.end.y == lines[ 0 ].start.y
         var lastLine = false;
@@ -253,7 +194,7 @@ export default function App() {
             lastLine = true;
         }
 
-        // Create the last line and save.
+        // Save the created line.
         saveNewLine( line );
 
         // Calculate area.
@@ -284,7 +225,10 @@ export default function App() {
 
             // Create the line on top of the previous line. 
             // Change the end a little bit, so that it is not on top of the previous line.
-            line = new Line(  previousLine.end, previousLine.start, previousLines.length + 1 )
+            line = new Line(  
+                    previousLine.end, 
+                    { x: previousLine.end.x + 1, y: previousLine.end.y + 1 }, 
+                    previousLines.length + 1 );
 
             // Turn relative to the previous line.
             var lineAngle = previousLine.angle + angleToPrevious;
@@ -308,6 +252,85 @@ export default function App() {
         setLinesVersion( linesVersion + 1 );
         updateDebugData( previousLines );
     }
+
+    // Call back for getting the data from input fields.
+    function modifyOneLine ( input ) {
+
+        setLines( ( oldLines ) => {
+
+            const newLines = oldLines;
+
+            // Find the line and adjust it's length and angle.
+            for( var i = 0; 0 < newLines.length; ++i ) {
+                
+                if( newLines[ i ].id === input.id ) {
+                    
+                    // Save the old coordinates.
+                    var oldEnd = newLines[ i ].end;
+
+                    // Set new length for this line.
+                    newLines[ i ].setNewLength( input.length );
+
+                    // Set new angle for this line.
+                    newLines[ i ].setNewAngle( input.angle );
+
+                    // Adjust the next line.
+                    if( newLines.length > 1 ) {
+
+                        // If not last, adjust the next lines starting point.
+                        if( i < newLines.length - 1 ) {
+                            newLines[ i + 1 ].setNewStartPoint( newLines[ i ].end );
+                        } else {
+
+                            // If last and there are more than 2 lines and the lines were actually connected, 
+                            // adjust the first lines starting point
+                            if( newLines.length > 2 && oldLines[ 0 ].start.x == oldEnd.x && oldLines[ 0 ].start.y == oldEnd.y ) {
+                                newLines[ 0 ].setNewStartPoint( newLines[ i ].end );
+                            }
+                        }
+                    }
+                    
+                    break;
+                }
+            }
+
+            const centeredLines = centerLines( newLines );
+
+            // Calculate area if drawing is finished.
+            if( !isDrawingAllowed ) {
+                calculateArea( centeredLines );
+            }
+
+            updateDebugData( centeredLines );
+            return centeredLines;
+
+        } );
+
+        setLinesVersion( ( oldVersion ) => {
+            return oldVersion + 1;
+        } );
+
+        redraw();
+    }
+
+    // Call back for getting the data from input fields.
+    function modifyAllLines ( input ) {
+        input.forEach( line => {
+            modifyOneLine( line );
+        });
+    }
+
+     // Call back for redrawing the canvas.
+     function redraw () {
+        
+        console.log( "Redraw" );
+
+        setRequestRedraw( ( oldValue ) => {
+            const newValue = oldValue + 1;
+            return newValue;
+        } );
+    }
+
 
     // Calculate area. https://www.mathsisfun.com/geometry/area-irregular-polygons.html
     function calculateArea( areaLines ) {
@@ -344,6 +367,21 @@ export default function App() {
          setArea( result  );
     }
 
+    function handleOnClickReset() {
+
+        // Empty lines.
+        setLines( Array() );
+
+        // Update debug data.
+        updateDebugData( Array() );
+
+        // Drawing is allowed.
+        setIsDrawingAllowed( true );
+
+        // Area is zero.
+        setArea( 0 );
+    }
+
     function handleOnClickZoomIn() {
         const ctx = canvas.current.getContext( "2d" );
         ctx.scale( 1.1, 1.1 );
@@ -359,11 +397,11 @@ export default function App() {
     function handleOnClickCenter() {
 
         // Center lines.
-        //const linesCopy = lines.slice();
-        // const centeredLines = centerLines( linesCopy );
+        const linesCopy = lines.slice();
+        const centeredLines = centerLines( linesCopy );
 
         // Save.
-        //setLines( centeredLines );
+        setLines( centeredLines );
     }
 
     function updateDebugData( lines ) {
@@ -393,6 +431,9 @@ export default function App() {
     // Create a new shape.
     function handleCreateShapeClick() {
 
+        // Cannot create a shape with less than 3 corners.
+        if( createShapeCorners < 3 ) return;
+
         // Calculate angle for corners.
         const angle = 360 / createShapeCorners;
 
@@ -414,22 +455,29 @@ export default function App() {
         }
 
         // Make sure the last and the first line are connected.
-        newLines[ 0 ].setNewStartPoint( newLines[ newLines.length - 1 ].end );
+        newLines[ 0 ].setNewStartPoint( newLines[ newLines.length - 1 ].end  );
 
         // Put to center.
-        //const centeredLines = centerLines( newLines );
+        const centeredLines = centerLines( newLines );
 
         // No more drawing.
         setIsDrawingAllowed( false );
 
         // Save.
-        setLines( newLines );
+        setLines( centeredLines );
 
         // Calculate area.
-        calculateArea( newLines );
+        calculateArea( centeredLines );
+
+        // Set debug data.
+        updateDebugData( centeredLines );
     }
 
+    // Center lines on canvas.
     function centerLines( previousLines ) {
+
+        // Resize the canvas to fit the lines.
+        const dimensions = resizeCanvas();
 
         // Calculate the weigth point of the lines now.
         var sumOfX = 0;
@@ -443,7 +491,7 @@ export default function App() {
         var weightPoint = { x: sumOfX / previousLines.length , y: sumOfY / previousLines.length };
 
         // Canvas middle point.
-        var middlePoint = { x: canvasWidth / 2, y: canvasHeight / 2 };
+        var middlePoint = { x: dimensions.width / 2, y: dimensions.height / 2 };
 
         // Calculate diff.
         const dX = Math.round( middlePoint.x - weightPoint.x);
@@ -451,15 +499,54 @@ export default function App() {
 
         // Adjust lines.
         const centeredLines = previousLines.slice();
-        centeredLines.forEach( line => {
-            line.start.x += dX;
-            line.start.y += dY;
-            line.end.x += dX;
-            line.end.y += dY;
-        });
-
+        for( var i = 0; i < centeredLines.length; ++i ) {
+            centeredLines[ i ].start.x += dX;
+            centeredLines[ i ].start.y += dY;
+            centeredLines[ i ].end.x += dX;
+            centeredLines[ i ].end.y += dY;
+        }
+        
         // Return.
         return centeredLines;
+    }
+
+    // Resize canvas to fit the drawing and return the new dimensions.
+    function resizeCanvas() {
+
+        // Find the minimum and maximum values for the coordinates.
+        var xMin = Number.MAX_SAFE_INTEGER;
+        var xMax = 0;
+        var yMin = Number.MAX_SAFE_INTEGER;
+        var yMax = 0;
+        lines.forEach( line => {
+            
+            // Save min coordinate is found in this line.
+            if( line.start.x < xMin ) xMin = line.start.x;
+            if( line.end.x < xMin ) xMin = line.end.x;
+            if( line.start.y < yMin ) yMin = line.start.y;
+            if( line.end.y < yMin ) yMin = line.end.y;
+
+            // Save max coordinate is found in this line.
+            if( line.start.x > xMax ) xMax = line.start.x;
+            if( line.end.x > xMax ) xMax = line.end.x;
+            if( line.start.y > yMax ) yMax = line.start.y;
+            if( line.end.y > yMax ) yMax = line.end.y;
+
+        });
+
+        // Calculate minimum width and height. Use a 50 pixel cap on edges.
+        var minWidth = xMax - xMin + 100;
+        var minHeight = yMax - yMin + 100;
+
+        // Use the default width and heigth either way if it is larger.
+        const width = minWidth < defaultWidth ? defaultWidth : minWidth;
+        const height = minHeight < defaultHeight ? defaultHeight : minHeight;;
+
+        // Resize if needed.
+        setCanvasWidth( width );
+        setCanvasHeight( height );
+
+        return { width, height };
     }
 
     // Map touch envents to mouse event handlers.
@@ -473,22 +560,27 @@ export default function App() {
     return (
        
         <div className="App">
+            
+            
             <div className="drawing">
+                
                 <div className="drawingboard">
-                    <canvas
-                        ref={canvas}
-                        onMouseDown={handleMouseDown}
-                        onMouseMove={handleMouseMove}
-                        onMouseUp={handleMouseUp}
-                        onTouchStart={handleTouchStart}
-                        onTouchMove={handleTouchMove}
-                        onTouchEnd={handleTouchEnd}
-                        width={canvasWidth}
-                        height={canvasHeight}
-                        style={{ border: "1px solid #ccc" }
-                        }
-                    ></canvas>
+                        <canvas
+                            ref={canvas}
+                            onMouseDown={handleMouseDown}
+                            onMouseMove={handleMouseMove}
+                            onMouseUp={handleMouseUp}
+                            onTouchStart={handleTouchStart}
+                            onTouchMove={handleTouchMove}
+                            onTouchEnd={handleTouchEnd}
+                            width={canvasWidth}
+                            height={canvasHeight}
+                            style={{ border: "1px solid #ccc" }
+                            }>
+
+                            </canvas>
                 </div>
+
                 <div className="buttons">
                     
                     <button className="new-line-button" disabled={!isDrawingAllowed} onClick={ () => handleOnClickAddNewLine()}>
@@ -496,6 +588,9 @@ export default function App() {
                     </button>
                     <button className="enddrawing_button" disabled={!isDrawingAllowed} onClick={ () => handleOnClickEnd()}>
                         Add last line
+                    </button>
+                    <button onClick={ () => handleOnClickReset() }>
+                        Reset
                     </button>
                     <button  onClick={ () => handleOnClickZoomIn()}>
                         Zoom +
@@ -507,8 +602,10 @@ export default function App() {
                         Center
                     </button>
                 </div>
-                <div className="createshape" >
-                    <label>Add multiple lines with corners: </label>
+            </div>
+
+            <div className="createshape" >
+                    <label>Create shape with lines:</label>
                     <input 
                         type="number"
                         step="1" 
@@ -525,12 +622,16 @@ export default function App() {
                 <div className="area" >
                         <label >Area: {area}</label>
                 </div>
-                <LineInfos lines={lines} linesVersion={linesVersion} inputCallback={ dataFromInputFields } />
+                <LineInfos 
+                    lines={lines} 
+                    linesVersion={linesVersion} 
+                    setOneCallback={ modifyOneLine } 
+                    setAllCallback= { modifyAllLines }
+                />
                 <div className="debug-data">
                     <ul className="debug" >{debugData}</ul>
                 </div>
-            </div>
-            
+
         </div>
     );
 }

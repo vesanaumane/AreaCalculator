@@ -2,8 +2,8 @@
 export class Line {
 
     constructor( start, end, id ) {
-        this.start = start;
-        this.end = end;
+        this.start = structuredClone( start );
+        this.end = structuredClone( end );
         this.length = calculateLength( this.start, this.end );
         
 
@@ -64,7 +64,7 @@ export class Line {
     }
 
     setNewStartPoint( newStart ) {
-        this.start = newStart;
+        this.start = structuredClone( newStart );
         this.angle = findAngle( { start:this.start, end:this.end }, { start:{ x :0, y:0}, end: { x:1, y:0} } );
         this.length = calculateLength( this.start, this.end );
 
@@ -144,11 +144,6 @@ export class Line {
         var angle = Math.atan2( dy,dx );
         var p;
         if (angle < -Math.PI/2 || angle > Math.PI/2 ){
-            p = p1;
-            p1 = p2;
-            p2 = p;
-            dx *= -1;
-            dy *= -1;
             angle -= Math.PI;
         }
 
@@ -198,7 +193,7 @@ function findAngle( line, otherLine ) {
 
 function calculateLength( start, end ) {
 
-    return roundDouble( Math.sqrt( Math.pow( start.x - end.x, 2 ) + Math.pow( start.y - end.y, 2 ) ), 10 );
+    return roundDouble( Math.sqrt( Math.pow( start.x - end.x, 2 ) + Math.pow( start.y - end.y, 2 ) ), 8 );
 }
 
 function angleToRadians( angleInDegrees ) {
