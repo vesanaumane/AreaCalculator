@@ -294,6 +294,7 @@ export default function App() {
                 }
             }
 
+            // Put the shape to the center of canvas.
             const centeredLines = centerLines( newLines );
 
             // Calculate area if drawing is finished.
@@ -502,19 +503,55 @@ export default function App() {
 
         // Adjust lines.
         const centeredLines = previousLines.slice();
+        const padding = 20;
+        var outsideX = padding;
+        var outsideY = padding;
         for( var i = 0; i < centeredLines.length; ++i ) {
+
+            // Set the new coordinates.
             centeredLines[ i ].start.x += dX;
             centeredLines[ i ].start.y += dY;
             centeredLines[ i ].end.x += dX;
             centeredLines[ i ].end.y += dY;
+
+            // Check that nothing is outside.
+            if( centeredLines[ i ].start.x < outsideX ) outsideX = centeredLines[ i ].start.x;
+            if( centeredLines[ i ].end.x < outsideX ) outsideX = centeredLines[ i ].end.x;
+            if( centeredLines[ i ].start.y < outsideX ) outsideY = centeredLines[ i ].start.y;
+            if( centeredLines[ i ].end.y < outsideX ) outsideY = centeredLines[ i ].end.y;
+
         }
         
+        // Adjust if needed.
+        if( outsideX < padding || outsideY < padding ) {
+
+            // Round the coordinates.
+            outsideX = Math.round( outsideX );
+            outsideY = Math.round( outsideY );
+
+            // Calculate adjustment.
+            const adjustX = outsideX < padding ? padding - outsideX : 0;
+            const adjustY = outsideY < padding ? padding - outsideY : 0;
+
+            for( var i = 0; i < centeredLines.length; ++i ) {
+
+                // Set the new coordinates.
+                centeredLines[ i ].start.x += adjustX;
+                centeredLines[ i ].start.y += adjustY;
+                centeredLines[ i ].end.x += adjustX;
+                centeredLines[ i ].end.y += adjustY;
+            }
+        }
+
+        resizeCanvas( true );
+
         // Return.
         return centeredLines;
     }
 
     // Resize canvas to fit the drawing and return the new dimensions.
-    function resizeCanvas() {
+    // Parameter force makes sure that all the lines fit the screen.
+    function resizeCanvas( force ) {
 
         // Find the minimum and maximum values for the coordinates.
         var xMin = Number.MAX_SAFE_INTEGER;
@@ -538,12 +575,23 @@ export default function App() {
         });
 
         // Calculate minimum width and height. Use a 50 pixel cap on edges.
-        var minWidth = xMax - xMin + 100;
-        var minHeight = yMax - yMin + 100;
+        const padding = 100;
+        var minWidth = xMax - xMin + padding;
+        var minHeight = yMax - yMin + padding;
 
         // Use the default width and heigth either way if it is larger.
-        const width = minWidth < defaultWidth ? defaultWidth : minWidth;
-        const height = minHeight < defaultHeight ? defaultHeight : minHeight;;
+        var width = minWidth < defaultWidth ? defaultWidth : minWidth;
+        var height = minHeight < defaultHeight ? defaultHeight : minHeight;;
+
+        // Make sure all the lines fit.
+        if( force ) {
+            if( width < xMax ) {
+                width = xMax + padding;
+            }
+            if( height < yMax ) {
+                height = yMax + padding;
+            }
+        }
 
         // Resize if needed.
         setCanvasWidth( width );
