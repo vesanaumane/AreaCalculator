@@ -380,6 +380,9 @@ export default function App() {
 
         // Area is zero.
         setArea( 0 );
+
+        // Resize canvas.
+        resizeCanvas();
     }
 
     function handleOnClickZoomIn() {
