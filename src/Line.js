@@ -219,7 +219,7 @@ function roundDouble( double, decimals ) {
 
 export function comparePoints( p1, p2 ) {
 
-    if( roundDouble( p1.x, 10 ) === roundDouble ( p2.x, 10 ) && roundDouble( p1.y, 10 ) === roundDouble ( p2.y, 10 ) ) {
+    if( roundDouble( p1.x, 8 ) === roundDouble ( p2.x, 8 ) && roundDouble( p1.y, 8 ) === roundDouble ( p2.y, 8 ) ) {
         return true;
     }
 

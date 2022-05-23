@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from "react";
 export default function App() {
 
     // Canvas default size.
-    const defaultWidth = window.innerWidth - 20;
+    const defaultWidth = window.innerWidth;
     const defaultHeight = Math.round( window.innerHeight / 2.5 );
 
     // Canvas.
@@ -44,7 +44,7 @@ export default function App() {
     const [ debugData, setDebugData ] = useState( Array() );
 
     // Canvas width.
-    const [ canvasWidth, setCanvasWidth ] = useState( defaultWidth );
+    const [ canvasWidth, setCanvasWidth ] = useState(  defaultWidth );
 
     // Canvas height.
     const [ canvasHeight, setCanvasHeight ] = useState( defaultHeight );
@@ -185,7 +185,7 @@ export default function App() {
     function handleOnClickAddNewLine() {
         
         // Get new line coordinates.
-        var line = getNewLine( 100, 60, lines );
+        var line = getNewLine( 100, 90, lines );
 
         // Stop drawing if lines create a closed loop. line.end.x == lines[ 0 ].start.x && line.end.y == lines[ 0 ].start.y
         var lastLine = false;
@@ -578,8 +578,7 @@ export default function App() {
                             onTouchEnd={handleTouchEnd}
                             width={canvasWidth}
                             height={canvasHeight}
-                            style={{ border: "1px solid #ccc" }
-                            }>
+                            >
 
                             </canvas>
                 </div>

@@ -15,10 +15,11 @@
   height: 40vh;
   overflow: auto;
   flex-shrink: 0;
+  padding : 3pt;
 }
 
 .drawingboard canvas {
-  padding : 3pt;
+  border: "1px solid #ccc";
 }
 
 
