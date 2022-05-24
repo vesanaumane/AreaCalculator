@@ -2,8 +2,8 @@
 export class Line {
 
     constructor( start, end, id ) {
-        this.start = structuredClone( start );
-        this.end = structuredClone( end );
+        this.start = { x: start.x, y: start.y };
+        this.end = { x: end.x, y: end.y };
         this.length = calculateLength( this.start, this.end );
         
 
@@ -64,7 +64,7 @@ export class Line {
     }
 
     setNewStartPoint( newStart ) {
-        this.start = structuredClone( newStart );
+        this.start = this.start = { x: newStart.x, y: newStart.y };
         this.angle = findAngle( { start:this.start, end:this.end }, { start:{ x :0, y:0}, end: { x:1, y:0} } );
         this.length = calculateLength( this.start, this.end );
 
@@ -149,11 +149,11 @@ export class Line {
 
         // Add padding from the starting point.
         var pad;
-        if( alignment=='center' ) {
+        if( alignment === 'center' ) {
             p = p1;
             pad = 1/2;
         } else {
-            var left = alignment=='left';
+            var left = alignment === 'left';
             p = left ? p1 : p2;
             pad = padding / len * ( left ? 1 : -1 );
         }

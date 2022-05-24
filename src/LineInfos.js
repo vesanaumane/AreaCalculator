@@ -1,11 +1,10 @@
-import { exportDefaultSpecifier } from '@babel/types';
 import React from 'react';
 import { useState, useEffect } from "react";
 import LineInfo from "./LineInfo.js"
 
 export default function LineInfos( { lines, setAllCallback, setOneCallback } ) {
 
-    const [ linesData, setLinesData ] = useState( Array() );
+    const [ linesData, setLinesData ] = useState( [] );
 
     useEffect( () => {
 
@@ -16,18 +15,16 @@ export default function LineInfos( { lines, setAllCallback, setOneCallback } ) {
         
         // Reset if new lines has no data.
         if( lines.length === 0 ) {
-            setLinesData( Array() );
+            setLinesData( [] );
             return;
         }
 
         // Add new lines.
         const newLines = linesData.slice();
         lines.map( ( line ) => {
-            
-            var test = newLines.some( ( element ) => element.id == line.id );
 
             // Update existing data.
-            if( newLines.some( ( element ) => element.id == line.id )  ) {
+            if( newLines.some( ( element ) => element.id === line.id )  ) {
                 const index = line.id - 1;
                 newLines[ index ].length = line.length;
                 newLines[ index ].angle = line.angle;
@@ -54,7 +51,7 @@ export default function LineInfos( { lines, setAllCallback, setOneCallback } ) {
         
         // Find the line.
         const currentLines = linesData.slice();
-        if( !currentLines.some( ( element ) => element.id == data.id ) ) {
+        if( !currentLines.some( ( element ) => element.id === data.id ) ) {
             return;
         }
 

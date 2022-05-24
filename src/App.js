@@ -4,7 +4,6 @@ import LineInfos from "./LineInfos.js"
 import React from 'react';
 import { useEffect, useRef, useState } from "react";
 
-
 export default function App() {
 
     // Canvas default size.
@@ -29,7 +28,7 @@ export default function App() {
     const [ end, setEnd ] = useState( { x: 0, y: 0 } );
 
     // All the lines.
-    const [ lines, setLines ] = useState( Array() );
+    const [ lines, setLines ] = useState( [] );
 
     // Version number for the lines.
     const [ linesVersion, setLinesVersion ] = useState( 0 );
@@ -41,7 +40,7 @@ export default function App() {
     const [ requestRedraw, setRequestRedraw ] = useState( "0" );
 
     // Boolean for triggering redraw.
-    const [ debugData, setDebugData ] = useState( Array() );
+    const [ debugData, setDebugData ] = useState( [] );
 
     // Canvas width.
     const [ canvasWidth, setCanvasWidth ] = useState(  defaultWidth );
@@ -208,7 +207,7 @@ export default function App() {
         
         // Get new line coordinates.
         var line;
-        if( previousLines.length == 0 ) {
+        if( previousLines.length === 0 ) {
 
             // Create the first line.
             const start = { x: 50, y: 50 };
@@ -284,7 +283,7 @@ export default function App() {
 
                             // If last and there are more than 2 lines and the lines were actually connected, 
                             // adjust the first lines starting point
-                            if( newLines.length > 2 && oldLines[ 0 ].start.x == oldEnd.x && oldLines[ 0 ].start.y == oldEnd.y ) {
+                            if( newLines.length > 2 && oldLines[ 0 ].start.x === oldEnd.x && oldLines[ 0 ].start.y === oldEnd.y ) {
                                 newLines[ 0 ].setNewStartPoint( newLines[ i ].end );
                             }
                         }
@@ -337,7 +336,7 @@ export default function App() {
     function calculateArea( areaLines ) {
 
          // Calculate area.
-         var areas = new Array();
+         var areas = [];
          areaLines.forEach( line  => {
              
              // Calculate average height between the line start and end points.
@@ -371,10 +370,10 @@ export default function App() {
     function handleOnClickReset() {
 
         // Empty lines.
-        setLines( Array() );
+        setLines( [] );
 
         // Update debug data.
-        updateDebugData( Array() );
+        updateDebugData( [] );
 
         // Drawing is allowed.
         setIsDrawingAllowed( true );
@@ -453,7 +452,7 @@ export default function App() {
         }
 
         // Create the lines.
-        const newLines = Array();
+        const newLines = [];
         for( var i = 0; i < createShapeCorners; ++ i ) {
             newLines.push( getNewLine(  length, angle, newLines ) );
         }
@@ -533,13 +532,13 @@ export default function App() {
             const adjustX = outsideX < padding ? padding - outsideX : 0;
             const adjustY = outsideY < padding ? padding - outsideY : 0;
 
-            for( var i = 0; i < centeredLines.length; ++i ) {
+            for( var j = 0; j < centeredLines.length; ++j ) {
 
                 // Set the new coordinates.
-                centeredLines[ i ].start.x += adjustX;
-                centeredLines[ i ].start.y += adjustY;
-                centeredLines[ i ].end.x += adjustX;
-                centeredLines[ i ].end.y += adjustY;
+                centeredLines[ j ].start.x += adjustX;
+                centeredLines[ j ].start.y += adjustY;
+                centeredLines[ j ].end.x += adjustX;
+                centeredLines[ j ].end.y += adjustY;
             }
         }
 
