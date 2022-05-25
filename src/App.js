@@ -170,7 +170,7 @@ export default function App() {
                 latestLine.end , 
                 firstLine.start, 
                 lines.length + 1 )
-        saveNewLine( line );
+        saveNewLine( line, true );
 
         // Stop drawing.
         setIsDrawingAllowed( false );
@@ -194,7 +194,7 @@ export default function App() {
         }
 
         // Save the created line.
-        saveNewLine( line );
+        saveNewLine( line, lastLine );
 
         // Calculate area.
         if( lastLine ) {
@@ -243,10 +243,18 @@ export default function App() {
     }
 
     // Save the line.
-    function saveNewLine( line ) {
+    function saveNewLine( line, center ) {
 
+        // Add line.
         const previousLines = lines.slice();
         previousLines.push( line );
+
+        // Center lines.
+        if( center ) {
+            centerLines( previousLines );
+        }
+
+        // Save.
         setLines( previousLines );
         setLinesVersion( linesVersion + 1 );
         updateDebugData( previousLines );
@@ -638,16 +646,16 @@ export default function App() {
                     <button className="enddrawing_button" disabled={!isDrawingAllowed} onClick={ () => handleOnClickEnd()}>
                         Add last line
                     </button>
-                    <button onClick={ () => handleOnClickReset() }>
+                    <button className="reset_button" onClick={ () => handleOnClickReset() }>
                         Reset
                     </button>
-                    <button  onClick={ () => handleOnClickZoomIn()}>
+                    <button hidden={true} onClick={ () => handleOnClickZoomIn()}>
                         Zoom +
                     </button>
-                    <button  onClick={ () => handleOnClickZoomOut()}>
+                    <button  hidden={true} onClick={ () => handleOnClickZoomOut()}>
                         Zoom -
                     </button>
-                    <button  onClick={ () => handleOnClickCenter()}>
+                    <button onClick={ () => handleOnClickCenter()}>
                         Center
                     </button>
                 </div>
