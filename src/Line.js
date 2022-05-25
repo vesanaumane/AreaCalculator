@@ -185,9 +185,15 @@ function findAngle( line, otherLine ) {
 
     // Use only positive angles.
     angle = angle < 0 ? angle + 360 : angle;
+    
+    // Round to 5 decimanls.
+    angle = roundDouble( angle, 5 );
 
-    // Return in 5 decimal accuracy.
-    return roundDouble( angle, 5 );
+    // Use 0 rather than 360 degress for horizontal line.
+    if( angle === 360 ) angle = 0;
+
+    // Return the angle.
+    return angle;
 }
 
 
