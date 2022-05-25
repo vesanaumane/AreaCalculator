@@ -171,6 +171,7 @@ export class Line {
     };
 }
 
+// Find angle.
 function findAngle( line, otherLine ) {
     
     // Calculate the difference.
@@ -184,13 +185,58 @@ function findAngle( line, otherLine ) {
     angle = angleToDegrees( angle );
 
     // Use only positive angles.
-    angle = angle < 0 ? angle + 360 : angle;
+    // angle = angle < 0 ? angle + 360 : angle;
+    angle = Math.abs( angle )
     
     // Round to 5 decimanls.
     angle = roundDouble( angle, 5 );
 
     // Use 0 rather than 360 degress for horizontal line.
     if( angle === 360 ) angle = 0;
+
+    // Make sure the line angle is in correct range. Keep in mind that
+    // canvas ( 0, 0 ) is in upper left corner and y axis is pointing down. 
+
+    // Line going down and right should be between 0 - 90 degress.
+    if( line.end.y >= line.start.y && line.end.x >= line.start.x ) {
+        
+        // Adjust angle if needed.
+        if( !( angle >= 0 && angle <= 90 ) ) {
+            
+            angle = 360 - angle
+        }
+    } else if( line.end.y >= line.start.y && line.end.x <= line.start.x ) {
+
+        // Line going down and left should be between 90 - 180 degrees.
+    
+        // Adjust angle if needed.
+        if( !( angle > 90 && angle <= 180 ) ) {
+            
+            angle = 360 - angle
+        }
+    } else if( line.end.y <= line.start.y && line.end.x <= line.start.x ) {
+
+        // Line going up and left should be between 180 - 270 degress.
+        
+        // Adjust angle if needed.
+        if( !( angle > 180 && angle <= 270 ) ) {
+            
+            angle = 360 - angle
+        }
+    } else if( line.end.y <= line.start.y && line.end.x >= line.start.x ) {
+
+        // Line going up and right should be between 270 - 360 degress.
+
+        // Adjust angle if needed.
+        if( !( angle > 270 && angle <= 360 ) ) {
+            
+            angle = 360 - angle
+
+            if( angle === 360 ) {
+                angle = 0;
+            }
+        }
+    }
 
     // Return the angle.
     return angle;
