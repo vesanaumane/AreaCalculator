@@ -93,6 +93,30 @@
   margin-top: 10pt;
 }
 
+
+.lineinfos #titlerow {
+  width: 250pt;
+  margin-bottom: 3pt;
+  display: flex;
+  flex-direction: row;
+  justify-items: center;
+}
+
+.lineinfos #line-number {
+  width: 14pt;
+  margin-right: 5pt
+} 
+
+.lineinfos #line-length {
+  width: 75pt;
+} 
+
+.lineinfos #line-angle {
+  width: 15%;
+  margin-left: 10pt;
+  margin-right: 5pt;
+} 
+
 .lineinfo {
   margin-bottom: 3pt;
 }
@@ -104,15 +128,19 @@
 }
 
 .lineinfo #input-length {
-  width: 100pt;
+  width: 75pt;
 }
 
 .lineinfo #input-angle {
   width: 15%;
   margin-left: 3pt;
-  margin-right: 5pt;
 }
 
+.lineinfo #input-lock-angle {
+  width: auto;
+  margin-left: 10pt;
+  margin-right: 10pt;
+}
 
 .debug-data {
   text-align: left;

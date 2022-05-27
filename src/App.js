@@ -155,7 +155,7 @@ export default function App() {
 
         setLines( ( oldLines ) => {
 
-            const newLines = oldLines;
+            const newLines = oldLines.slice();
 
             // Find the line and adjust it's length and angle.
             for( var i = 0; 0 < newLines.length; ++i ) {

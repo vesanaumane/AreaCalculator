@@ -1,16 +1,29 @@
 import React from 'react';
 import { useState, useEffect } from "react";
 
-export default function LineInfo( { onChangeCallback, saveCallback, line } ) {
+export default function LineInfo( { onChangeCallback, saveCallback, lineLength, lineAngle, lineId } ) {
 
     // Line info.
-    const [ length, setLength ] = useState( line.length );
-    const [ angle, setAngle ] = useState( line.angle );
+    const [ length, setLength ] = useState( lineLength );
+    const [ angle, setAngle ] = useState( lineAngle );
+    const [ angleLocked, setAngleLocked ] = useState( false );
 
 
     useEffect( () => {
 
-        onChangeCallback( { id: line.id, length: length, angle: angle } );
+        if( length !== lineLength ) {
+            setLength( lineLength )
+        }
+        
+        if( angle !== lineAngle ) {
+            setAngle( lineAngle )
+        }
+
+    }, [ lineLength, lineAngle ] );
+
+    useEffect( () => {
+
+        onChangeCallback( { id: lineId, length: length, angle: angle, angleLocked: angleLocked } );
 
     }, [ angle, length ]);
 
@@ -24,21 +37,25 @@ export default function LineInfo( { onChangeCallback, saveCallback, line } ) {
         setAngle( parseFloat( input ) );
     }
 
+    function handleAngleLockedInput() {
+        setAngleLocked( !angleLocked );
+    }
+
     function handleOnClick() {
-        saveCallback( { id: line.id, length: length, angle: angle } );
+        saveCallback( { id: lineId, length: length, angle: angle } );
     }
 
     // Select all when clicking input.
     const handleFocus = (event) => event.target.select();
 
     return(
-            <div key={ line.id } className="lineinfo">
-                    <label>{line.id}.</label>
+            <div key={ lineId } className="lineinfo">
+                    <label>{lineId}.</label>
                     <input
                         id='input-length'
                         type="number" 
                         step="1"
-                        defaultValue={line.length} 
+                        value={length} 
                         onFocus={handleFocus} 
                         onChange={ evt => { handleLengthInput( evt ) } } 
                     />
@@ -48,9 +65,16 @@ export default function LineInfo( { onChangeCallback, saveCallback, line } ) {
                         step="1" 
                         min={-360} 
                         max={360} 
-                        defaultValue={Math.round( line.angle )}
+                        value={Math.round( angle )}
                         onFocus={handleFocus} 
-                        onChange={ evt => { handleAngleInput( evt ) } } 
+                        onChange={ evt => { handleAngleInput( evt ) } }
+                        disabled={!angleLocked}
+                    />
+                    <input
+                        id='input-lock-angle'
+                        type="checkbox"
+                        checked={angleLocked}
+                        onChange={handleAngleLockedInput}
                     />
                     <button onClick={ () => { handleOnClick() }}>Save</button>
             </div> 

@@ -20,14 +20,24 @@ export default function LineInfos( { lines, setAllCallback, setOneCallback } ) {
         }
 
         // Add new lines.
-        const newLines = linesData.slice();
-        lines.map( ( line ) => {
+        const newLines = [ ...linesData];
+        lines.forEach( ( line ) => {
 
             // Update existing data.
             if( newLines.some( ( element ) => element.id === line.id )  ) {
                 const index = line.id - 1;
-                newLines[ index ].length = line.length;
-                newLines[ index ].angle = line.angle;
+
+                if( HasLineChanged( newLines[ index ], line ) ) {
+                    
+                    // newLines[ index ].length = line.length;
+                    // newLines[ index ].angle = line.angle;
+
+                    newLines.splice( index, 1, {id: line.id, length: line.length, angle: line.angle } );
+                    //newLines.push(  {id: line.id, length: line.length, angle: line.angle } );
+                }
+
+                
+
             }
             else {
 
@@ -47,6 +57,15 @@ export default function LineInfos( { lines, setAllCallback, setOneCallback } ) {
         setAllCallback( linesData );
     }
 
+
+    function HasLineChanged( line, newData ){
+        if( line.length === newData.length && line.angle === newData.angle ) {
+            return false;
+        }
+
+        return true;
+    }
+
     const handleOneChange = ( data ) => {
         
         // Find the line.
@@ -57,19 +76,29 @@ export default function LineInfos( { lines, setAllCallback, setOneCallback } ) {
 
         // Set data.
         const index = data.id - 1;
-        currentLines[ index ].length = data.length;
-        currentLines[ index ].angle = data.angle;
+        if( HasLineChanged( currentLines[ index ], data ) ) {
+            currentLines[ index ].length = data.length;
+            currentLines[ index ].angle = data.angle;
+        }
     }
 
     return(
         <div >
             <div className="lineinfos" >
+                <div id='titlerow' style={linesData.length === 0 ? { display: 'none' } : {} } >
+                    <span id='line-number'>#</span>
+                    <span id='line-length'>Length</span>
+                    <span id='line-angle'>Angle</span>
+                    <span id='line-lock-angle'>Lock</span>
+                </div>
                 { linesData.map( linedata => 
                     <LineInfo
                         key={linedata.id}
                         saveCallback={setOneCallback}
                         onChangeCallback={ handleOneChange }
-                        line={linedata}
+                        lineLength={linedata.length}
+                        lineAngle={linedata.angle}
+                        lineId={linedata.id}
                     /> 
                 ) }
                 <div id='saveall'>
