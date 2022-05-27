@@ -5,10 +5,10 @@
 .drawing {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  justify-items: center;
 }
 
-.drawingboard {
+.canvas-line {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -19,44 +19,59 @@
   padding : 3pt;
 }
 
-.drawingboard canvas {
+.canvas-line canvas {
   border: "1px solid #ccc";
 }
 
 
-.buttons {
-  display: flex;
-  align-items: center;
-  margin-left: 10pt;
-  margin-right: 10pt;
-  flex-direction: row;
+.drawing-buttons {
+  margin-left: auto;
+  margin-right: auto;
   padding-top: 5pt;
   padding-left: 5pt;
-  width: 100%;
+  width: 235pt;
 }
 
-.buttons button {
+.drawing-buttons button {
   margin-right: 2pt;
+
 }
 
-.buttons .reset_button {
+.drawing-buttons .reset_button {
   margin-left: 15pt;
   margin-right: 15pt;
 }
 
+.area {
+  display: flex;
+  flex-direction: row;
+  margin-left: auto;
+  margin-right: auto;
+  padding-top: 20pt;
+  padding-bottom: 20pt;
+  width: 235pt;
+
+}
+
+.area label{
+  font-weight: bold;
+  margin-left: 4pt;
+}
+
+.area span{
+  margin-left: 5pt;
+}
+
 .create-modify {
-  align-items: center;
+  margin-left: auto;
+  margin-right: auto;
+  width: 250pt;
 }
 
 .createshape {
-  display: flex;
-  margin-top: 10pt;
-  margin-left: 10pt;
-  margin-right: 10pt;
-  flex-direction: row;
-  padding-top: 5pt;
-  padding-left: 5pt;
-  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 11pt;
 }
 
 .createshape input {
@@ -65,15 +80,39 @@
   margin-right: 2pt
 }
 
-.area {
-  display: flex;
-  margin-left: 10pt;
-  margin-right: 10pt;
-  padding-left: 5pt;
-  flex-direction: row;
-  padding-top: 5pt;
-  width: 100%;
+
+
+.lineinfos {
+  padding-top: 20pt;
 }
+
+.lineinfos #saveall {
+  width: 50pt;
+  margin-left: auto;
+  margin-right: 36pt;
+  margin-top: 10pt;
+}
+
+.lineinfo {
+  margin-bottom: 3pt;
+}
+
+.lineinfo label {
+  display:inline-block;
+  width: 14pt;
+  margin-right: 5pt
+}
+
+.lineinfo #input-length {
+  width: 100pt;
+}
+
+.lineinfo #input-angle {
+  width: 15%;
+  margin-left: 3pt;
+  margin-right: 5pt;
+}
+
 
 .debug-data {
   text-align: left;
@@ -89,25 +128,4 @@ ul.debug {
 
 ul.debug li {
   padding: 0;
-}
-
-.lineinfos {
-  display: flex;
-  flex-direction: column;
-  justify-content: left;
-  vertical-align: left;
-  margin-bottom: 10pt;
-  margin-top: 10pt;
-  margin-left: 5pt;
-  padding: 0;
-}
-
-.lineinfo {
-  float: left;
-  margin: 5pt;
-  padding: 5pt;
-}
-
-.saveall {
-  margin-left: 193pt;
 }

@@ -516,11 +516,10 @@ export default function App() {
     return (
        
         <div className="App">
-            
-            
+
             <div className="drawing">
                 
-                <div className="drawingboard">
+                <div className="canvas-line">
                         <LineCanvas
                             lines={lines}
                             addLineCallback={saveNewLine}
@@ -531,7 +530,7 @@ export default function App() {
                             />
                 </div>
 
-                <div className="buttons">
+                <div className="drawing-buttons">
                     
                     <button className="new-line-button" disabled={!isDrawingAllowed} onClick={ () => handleOnClickAddNewLine()}>
                         Add line
@@ -554,9 +553,17 @@ export default function App() {
                 </div>
             </div>
             
+            <div className="area" >
+                <div>
+                    <label>Area:</label>
+                </div>
+                <div>
+                    <span>{area}</span>
+                </div>
+            </div>
+
             <div className="create-modify">
 
-            
                 <div className="createshape" >
                     <label>Create shape with lines:</label>
                     <input 
@@ -572,9 +579,7 @@ export default function App() {
                         disabled={lines.length > 0} 
                         onClick={ () => { handleCreateShapeClick() }}>Create</button>
                 </div>
-                <div className="area" >
-                        <label >Area: {area}</label>
-                </div>
+                
                 <LineInfos 
                     lines={lines} 
                     linesVersion={linesVersion} 

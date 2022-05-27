@@ -72,9 +72,12 @@ export default function LineInfos( { lines, setAllCallback, setOneCallback } ) {
                         line={linedata}
                     /> 
                 ) }
-                
+                <div id='saveall'>
+                    <button  hidden={linesData.length === 0} onClick={ () => { handleSaveAllOnClick() }}>Save all</button>
+                </div>
             </div>
-            <button className='saveall' hidden={linesData.length === 0} onClick={ () => { handleSaveAllOnClick() }}>Save all</button>
+            
+            
         </div>
     );
 }

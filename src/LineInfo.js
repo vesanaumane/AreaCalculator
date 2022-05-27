@@ -32,17 +32,18 @@ export default function LineInfo( { onChangeCallback, saveCallback, line } ) {
     const handleFocus = (event) => event.target.select();
 
     return(
-            <div key={ line.id } className="lineInfo">
-                <div className="lineInfo">
-                    <label>{line.id}. </label>
-                    <input 
+            <div key={ line.id } className="lineinfo">
+                    <label>{line.id}.</label>
+                    <input
+                        id='input-length'
                         type="number" 
-                        step="0.01" 
+                        step="1"
                         defaultValue={line.length} 
                         onFocus={handleFocus} 
                         onChange={ evt => { handleLengthInput( evt ) } } 
                     />
-                    <input 
+                    <input
+                        id='input-angle'
                         type="number" 
                         step="1" 
                         min={-360} 
@@ -52,7 +53,6 @@ export default function LineInfo( { onChangeCallback, saveCallback, line } ) {
                         onChange={ evt => { handleAngleInput( evt ) } } 
                     />
                     <button onClick={ () => { handleOnClick() }}>Save</button>
-                </div>
             </div> 
         );
 }
