@@ -2,7 +2,8 @@ import "./App.css";
 import { Line, comparePoints } from "./Line.js"
 import LineInfos from "./LineInfos.js"
 import React from 'react';
-import { useEffect, useRef, useState } from "react";
+import LineCanvas from "./LineCanvas.js"
+import { useState } from "react";
 
 export default function App() {
 
@@ -10,23 +11,11 @@ export default function App() {
     const defaultWidth = window.innerWidth;
     const defaultHeight = Math.round( window.innerHeight / 2.5 );
 
-    // Canvas.
-    const canvas = useRef();
-
     // Define state variables.
-
-    // Boolean for knowing if we are currently drawing or not.
-    const [ isDrawing, setIsDrawing ] = useState( false );
 
     // Boolean for knowing if we ashould draw new lines or not
     const [ isDrawingAllowed, setIsDrawingAllowed ] = useState( true );
-
-    // Current line start coordinates.
-    const [ start, setStart ] = useState( { x: 0, y: 0 } );
-
-    // Current line end coordinates
-    const [ end, setEnd ] = useState( { x: 0, y: 0 } );
-
+    
     // All the lines.
     const [ lines, setLines ] = useState( [] );
 
@@ -50,105 +39,6 @@ export default function App() {
 
     // Corners when creating new shape.
     const [ createShapeCorners, setCreateShapeCorners ] = useState( 4 );
-
-
-
-    // Draw effect – each time isDrawing,
-    // start or end change, automatically
-    // redraw everything.
-    useEffect( () => {
-
-        // Return if canvas has no value.
-        if( !canvas.current ) return;
-
-        // Clear canvas.
-        const ctx = canvas.current.getContext( "2d" );
-        ctx.clearRect( 0, 0, canvas.current.width - 2, canvas.current.height );
-
-        // Resize canvas.
-        canvas.current.width = canvasWidth;
-        canvas.current.height = canvasHeight;
-
-        // Draw the line.
-        ctx.beginPath();
-        ctx.moveTo( start.x, start.y );
-        ctx.lineTo( end.x, end.y );
-        ctx.closePath();
-        ctx.stroke();
-
-        // Draw the old lines too.
-        lines.forEach( line => {
-           line.draw( ctx );
-        });
-
-    }, [ isDrawing, isDrawingAllowed, start, end, requestRedraw, lines ]);
-
-    // When mouse is down, start drawing.
-    function handleMouseDown(e) {
-
-        // Return if finished.
-        if( !isDrawingAllowed ) return;
-
-        // Start drawing.
-        setIsDrawing( true );
-
-        // Save start to either mouse location or
-        // to the end of the previous line.
-        if( lines.length > 0 ) {
-            setStart({
-                x: lines[ lines.length - 1 ].end.x,
-                y: lines[ lines.length - 1 ].end.y
-            });
-        } else {
-            setStart({
-                x: e.nativeEvent.offsetX,
-                y: e.nativeEvent.offsetY
-            });
-        }
-
-        // Initialize end point to the mouse location.
-        setEnd({
-            x: e.nativeEvent.offsetX,
-            y: e.nativeEvent.offsetY
-        });
-    }
-
-    // Modify ending coordinates when moving mouse.
-    function handleMouseMove(e) {
-        
-        // Do nothing if not drawing.
-        if( !isDrawing ) return;
-
-        // Set end coordinates.
-        setEnd({
-            x: e.nativeEvent.offsetX,
-            y: e.nativeEvent.offsetY
-        });
-    }
-
-    // Stop drawing when mouse is up.
-    function handleMouseUp( e ) {
-
-        // Return if finished.
-        if( !isDrawingAllowed ) return;
-
-        // Stop drawing.
-        setIsDrawing( false );
-
-        // Create the line.
-        const line = new Line( start, end, lines.length + 1  );
-
-        // Save only if the line length is more than 0.
-        if( line.length > 0 ) {
-           saveNewLine( line );
-        }
-        
-        // Start drawing again from the end of the previous line.
-        setStart({
-            x: end.x,
-            y: end.y
-        });
-    }
 
     // Create a last line between the first line's start
     // and the previous line's end point. 
@@ -323,9 +213,10 @@ export default function App() {
 
     // Call back for getting the data from input fields.
     function modifyAllLines ( input ) {
+        
         input.forEach( line => {
             modifyOneLine( line );
-        });
+        } );
     }
 
      // Call back for redrawing the canvas.
@@ -393,16 +284,27 @@ export default function App() {
         resizeCanvas();
     }
 
+    
     function handleOnClickZoomIn() {
+
+        /*
+
         const ctx = canvas.current.getContext( "2d" );
         ctx.scale( 1.1, 1.1 );
         redraw();
+
+        */
     }
 
     function handleOnClickZoomOut() {
+
+        /*
+
         const ctx = canvas.current.getContext( "2d" );
         ctx.scale( 0.9, 0.9 );
         redraw();
+
+        */
     }
 
     function handleOnClickCenter() {
@@ -607,11 +509,7 @@ export default function App() {
         return { width, height };
     }
 
-    // Map touch envents to mouse event handlers.
-    function handleTouchStart( event ) { handleMouseDown( event.touches[0]) }
-    function handleTouchMove( event ) { handleMouseMove(event.touches[0]); event.preventDefault(); }
-    function handleTouchEnd( event ) { handleMouseUp(event.changedTouches[0]) }
-
+    
     // Select all when clicking input.
     const handleFocus = (event) => event.target.select();
 
@@ -623,19 +521,14 @@ export default function App() {
             <div className="drawing">
                 
                 <div className="drawingboard">
-                        <canvas
-                            ref={canvas}
-                            onMouseDown={handleMouseDown}
-                            onMouseMove={handleMouseMove}
-                            onMouseUp={handleMouseUp}
-                            onTouchStart={handleTouchStart}
-                            onTouchMove={handleTouchMove}
-                            onTouchEnd={handleTouchEnd}
+                        <LineCanvas
+                            lines={lines}
+                            addLineCallback={saveNewLine}
                             width={canvasWidth}
                             height={canvasHeight}
-                            >
-
-                            </canvas>
+                            drawingEnabled={isDrawingAllowed}
+                            requestRedraw={requestRedraw}
+                            />
                 </div>
 
                 <div className="buttons">
@@ -660,8 +553,11 @@ export default function App() {
                     </button>
                 </div>
             </div>
+            
+            <div className="create-modify">
 
-            <div className="createshape" >
+            
+                <div className="createshape" >
                     <label>Create shape with lines:</label>
                     <input 
                         type="number"
@@ -688,7 +584,7 @@ export default function App() {
                 <div className="debug-data">
                     <ul className="debug" >{debugData}</ul>
                 </div>
-
+            </div>
         </div>
     );
 }
