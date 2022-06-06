@@ -1,5 +1,5 @@
 import "./App.css";
-import { Line, comparePoints } from "./Line.js"
+import { Line, comparePoints, findAngle } from "./Line.js"
 import LineInfos from "./LineInfos.js"
 import React from 'react';
 import LineCanvas from "./LineCanvas.js"
@@ -213,10 +213,353 @@ export default function App() {
 
     // Call back for getting the data from input fields.
     function modifyAllLines ( input ) {
-        
-        input.forEach( line => {
-            modifyOneLine( line );
+
+        setLines( ( oldLines ) => {
+
+            // Create the lines based on data.
+            const newLines = [];
+            let fixedLines = [];
+            let fixedAnglesCount = 0;
+            let saveNextLineAngle = false;
+            for( let index = 0; index < input.length; index++ ) {
+
+                // Just create a new line.
+                let newLineData = input[ index ];
+                let newLine = getNewLine( newLineData.length, 10, newLines );
+
+                // Make sure the length is correct.
+                newLine.setNewLength( newLineData.length );
+
+                // If angle is locked, set angle and save as fixed.
+                if( input[ index ].angleLocked || saveNextLineAngle ) {
+                    newLine.setNewAngle( newLineData.angle );
+                    fixedLines.push( index );
+                }
+
+                // Set also next line if angle was fixed.
+                saveNextLineAngle = input[ index ].angleLocked;
+                if( saveNextLineAngle ) {
+                    ++fixedAnglesCount;
+                }
+
+                // Save the line.
+                newLines.push( newLine );
+
+                //if( index === 2 ) break;
+            }
+
+            // Sanity check: There should be exactly corners - three fixed angles.
+            if( newLines.length - 3 !== fixedAnglesCount ) {
+
+                // Write error message somewhere.
+
+                // Return the old lines.
+                return oldLines;
+            }
+
+            // Start to calculate from the first fixed line or if there are no fixed lines
+            // this is a triangle, and we don't need fixed lines.
+            let startId = 0;
+            if( fixedLines.length > 0 ) {
+                startId = fixedLines[ 0 ];
+            }
+
+            // Local function for getting next id.
+            function getNextId( current ) {
+                return current === newLines.length - 1 ? 0 : current + 1;
+            }
+
+            // First line in the triangle is the first line with fixed angle 
+            // or if the shape has more than three corners, draw the line from this line's start to the next line's end. 
+            let triangleLine1 = newLines[ startId ];
+            let nextId = getNextId( startId );
+            if( newLines.length > 3 ) {
+                triangleLine1 = new Line( triangleLine1.start,  newLines[ nextId ].end, 0 );
+            }
+
+            // Todo create these in case of not triangle.
+            let triangleLine2Id = getNextId( nextId );
+            let triangleLine2 = newLines[ triangleLine2Id ];
+            let triangleLine3Id = getNextId( triangleLine2Id );
+            let triangleLine3 = newLines[ triangleLine3Id ];
+
+            // This can be done by creating a circle of a radius of a known side length
+            // to both end of a set line. Calculate the crossing points for these circles. 
+            let knownPoint0 = triangleLine1.start;
+            let knownPoint1 = triangleLine1.end;
+
+            // Get the radii of the circles.
+            let r1 = triangleLine2.length;
+            let r2 = triangleLine3.length;
+
+            // Get known points coordinates.
+            let x1 = knownPoint0.x;
+            let y1 = knownPoint0.y;
+            let x2 = knownPoint1.x;
+            let y2 = knownPoint1.y;
+
+            // Calculate.
+            let R = triangleLine1.length;
+
+            // There are two possible points for the last point.
+            // First result.
+            let result1x = 0.5 * ( x1 + x2 ) + ( Math.pow( r1, 2 ) -  Math.pow( r2, 2 ) ) / ( 2 *  Math.pow( R, 2 ) ) * ( x2 - x1 ) 
+                + ( 0.5 * Math.sqrt( 
+                    2 * ( ( Math.pow( r1, 2 ) + Math.pow( r2, 2 ) ) / Math.pow( R, 2 ) )  - Math.pow( Math.pow( r1, 2 ) - Math.pow( r2, 2 ), 2 ) / Math.pow( R, 4 ) - 1 
+                ) ) * ( y2 - y1 );
+            let result1y = 0.5 * ( y1 + y2 ) + ( Math.pow( r1, 2 ) - Math.pow( r2, 2 ) ) / ( 2 *  Math.pow( R, 2 ) ) * ( y2 - y1 ) 
+                + 0.5 * Math.sqrt( 
+                    2 * ( ( Math.pow( r1, 2 ) + Math.pow( r2, 2 ) ) / Math.pow( R, 2 ) )  - Math.pow( Math.pow( r1, 2 ) - Math.pow( r2, 2 ), 2 ) / Math.pow( R, 4 ) - 1 
+                ) * ( x1 - x2 );
+
+            // Second result.
+            let result2x = 0.5 * ( x1 + x2 ) + ( Math.pow( r1, 2 ) -  Math.pow( r2, 2 ) ) / ( 2 *  Math.pow( R, 2 ) ) * ( x2 - x1 ) 
+                - ( 0.5 * Math.sqrt( 
+                    2 * ( ( Math.pow( r1, 2 ) + Math.pow( r2, 2 ) ) / Math.pow( R, 2 ) )  - Math.pow( Math.pow( r1, 2 ) - Math.pow( r2, 2 ), 2 ) / Math.pow( R, 4 ) - 1 
+                ) ) * ( y2 - y1 );
+            let result2y = 0.5 * ( y1 + y2 ) + ( Math.pow( r1, 2 ) - Math.pow( r2, 2 ) ) / ( 2 *  Math.pow( R, 2 ) ) * ( y2 - y1 ) 
+                - 0.5 * Math.sqrt( 
+                    2 * ( ( Math.pow( r1, 2 ) + Math.pow( r2, 2 ) ) / Math.pow( R, 2 ) )  - Math.pow( Math.pow( r1, 2 ) - Math.pow( r2, 2 ), 2 ) / Math.pow( R, 4 ) - 1 
+                ) * ( x1 - x2 );
+
+            // Save the lines.
+            newLines[ triangleLine2Id ] = new Line( triangleLine1.end,  { x: result2x, y: result2y }, newLines[ triangleLine2Id ].id );
+            newLines[ triangleLine3Id ] = new Line( { x: result2x, y: result2y }, triangleLine1.start, newLines[ triangleLine3Id ].id );
+
+            /*
+
+            const newLines = oldLines.slice();
+
+            // Save all inputs.
+            let saveNextLineAngle = false;
+            let fixedLines = [];
+            for( let index = 0; index < input.length; index++ ) {
+
+                // Set both length and angle if angle is locked.
+                if( input[ index ].angleLocked || saveNextLineAngle ) {
+
+                    newLines[ index ].setNewAngle( input[ index ].angle );
+                    newLines[ index ].setNewLength( input[ index ].length );
+                    saveNextLineAngle = input[ index ].angleLocked;
+                    fixedLines.push( index );
+
+                } else {
+
+                    // Set angle a couple of degrees different than the previous line.
+                    if( index > 0 ) {
+                        newLines[ index ].setNewAngle( newLines[ index - 1 ].angle + 10 );
+                    }
+
+                    // Set length.
+                    newLines[ index ].setNewLength( input[ index ].length );
+                    saveNextLineAngle = false;
+                }
+
+                // If not last, adjust the next lines starting point.
+                const isLast = index === newLines.length - 1;
+                if( !isLast ) {
+                    let nextLineIndex = index < newLines.length - 1 ? index + 1 : 0;
+                    newLines[ nextLineIndex ].setNewStartPoint( newLines[ index ].end );
+                    
+                    //if( index == 1 ) break;
+                } else {
+
+                    // If this is not fixed line, then turn it to point directly towards the start point.
+                    if( !fixedLines.some( ( idx) => idx === index ) ) {
+                        
+                        // Create temp last line.
+                        var tempLastLine = new Line( newLines[ index - 1 ].end, newLines[ 0 ].start, 1 );
+
+                        // This last line's angle should be the same as the temp line's angle,
+                        // as this is the shortest way to close the shape.
+                        // newLines[ index ].setNewAngle( tempLastLine.angle );
+                    }
+                }
+            } */
+
+            /*
+            // Avoid crossing lines.
+            for( let index = 0; index < input.length; index++ ) {
+
+                 // Skip if fixed line.
+                 if( fixedLines.some( ( idx ) => idx === index ) ) {
+                    continue;
+                }
+
+                // Find if there are any lines that cross this line.
+                for( let nextIndex = index + 5; nextIndex < input.length; nextIndex++ ) {
+
+                    // Turn if in conflict.
+                    let turnedAngles = 0;
+                    let conflict = false;
+                    do {
+
+                        // Check from x-axis.
+                        let startDx = newLines[ index ].start.x - newLines[ nextIndex ].start.x;
+                        let endDx = newLines[ index ].end.x - newLines[ nextIndex ].end.x;
+                        let xAxisConflict = false;
+                        if( !( ( startDx > 0 && endDx > 0 ) || ( startDx < 0 && endDx < 0 ) )  ) {
+                            
+                            // X-axis has a possible conflict.
+                            xAxisConflict = true;
+                        }
+
+                        // Check from y-axis.
+                        let startDy = newLines[ index ].start.y - newLines[ nextIndex ].start.y;
+                        let endDy = newLines[ index ].end.y - newLines[ nextIndex ].end.y;
+                        let yAxisConflict = false;
+                        if( !( ( startDy > 0 && endDy > 0 ) || ( startDy < 0 && endDy < 0 ) )  ) {
+                            
+                            // Y-axis has a possible conflict.
+                            yAxisConflict = true;
+                        }
+
+                        // If in conflict, turn 10 degrees until not in conflict.
+                        conflict = xAxisConflict && yAxisConflict;
+                        if( conflict ) {
+                            
+                            // Save old end point.
+                            let oldEnd = newLines[ index ].end;
+
+                            // Turn this line.
+                            let newAngle = newLines[ index ].angle - 1;
+                            newAngle = newAngle < 0 ? 360 + newAngle : newAngle;
+                            turnedAngles += 1;
+                            newLines[ index ].setNewAngle( newAngle );
+
+                            // Move the subsequent lines the to match this turning.
+                            let dx = newLines[ index ].end.x - oldEnd.x;
+                            let dy = newLines[ index ].end.y - oldEnd.y;
+                            for (let restIndex = index + 1; restIndex < newLines.length; restIndex++) {
+                                newLines[ restIndex ].moveLine( dx, dy );
+                            }
+                        }
+
+                    } while( conflict && turnedAngles < 360 );
+                }
+            }
+
+            // Adjust available corners so that the valid shape is formed.
+            var retries = 250;
+            while( !isShapeValid( newLines ) && retries > 0 ){
+
+                for( let index = 0; index < newLines.length; index++ ) {
+                    
+                    // Skip if fixed line.
+                    if( fixedLines.some( ( idx) => idx === index ) ) {
+                        continue;
+                    }
+
+                    // If first line angle towards the end point.
+                    let newAngle = newLines[ index ].angle;
+                    let oldEnd = newLines[ index ].end;
+                    if( index === 0 ) {
+
+                        // Copy first line that is in opposite direction of the actual first line.
+                        let reverseLine = new Line( newLines[ 0 ].end, newLines[ 0 ].start, 1 );
+
+                        // Create temp reverse first line.
+                        let tempFirstLine = new Line( newLines[ 0 ].end, newLines[ newLines.length - 1 ].end, 1 );
+
+                        // Adjust the angle for this reverse line.
+                        reverseLine.setNewAngle( tempFirstLine.angle );
+
+                        // Adjust the actual lines coordinates.
+                        newLines[ index ].start = reverseLine.end;
+                        newLines[ index ].end = reverseLine.start;
+
+                        continue;
+
+                    } else if( index ===  newLines.length - 1 ) {
+                         
+                        // If last line, turn it towards the shape's starting point.
+
+                        // Create temp last line.
+                        let tempLastLine = new Line( newLines[ index - 1 ].end, newLines[ 0 ].start, 1 );
+
+                        // This last line's angle should be the same as the temp line's angle,
+                        // as this is the shortest way to close the shape.
+                        newAngle = tempLastLine.angle;
+
+                    } else {
+
+                        // Create two temp lines. One from this lines start point to the
+                        // shape's starting point, and other to shape's end point.
+                        let toStartPoint = new Line( newLines[ index ].start, newLines[ 0 ].start );
+                        let toEndPoint = new Line( newLines[ index ].start, newLines[ newLines.length - 1 ].end );
+
+                        // Calculate angle between these lines.
+                        //let dAngle = findAngle( toEndPoint, toStartPoint );
+                        let dAngle = toStartPoint.angle - toEndPoint.angle;
+
+                        // Calculate new angle.
+                        newAngle = newLines[ index ].angle + dAngle / 3;
+
+                        if( index === 1 ) console.log( newAngle );
+
+                        // Do not use negative angle.
+                        if( newAngle < 0 ) newAngle = 360 - newAngle;
+
+                        // Remove full circles.
+                        while( newAngle >=  360 ) {
+                            newAngle = newAngle - 360;
+                        }
+                    }
+
+                    // Turn this line.
+                    newLines[ index ].setNewAngle( newAngle );
+
+                    // Move the subsequent lines the to match this turning.
+                    let dx = newLines[ index ].end.x - oldEnd.x;
+                    let dy = newLines[ index ].end.y - oldEnd.y;
+                    for (let restIndex = index + 1; restIndex < newLines.length; restIndex++ ) {
+                        newLines[ restIndex ].moveLine( dx, dy );
+                    }
+                }
+
+               --retries;
+            }
+
+            let errorX =  newLines[ newLines.length - 1 ].end.x - newLines[ 0 ].start.x;
+            let errorY =  newLines[ newLines.length - 1 ].end.y - newLines[ 0 ].start.y;
+            console.log( "Error after " + ( 250 - retries ) + " retries: (" + errorX + ", " + errorY + ")" );
+*/
+            // Put the shape to the center of canvas.
+            const centeredLines = centerLines( newLines );
+
+            // Update area.
+            calculateArea( centeredLines );
+            updateDebugData( centeredLines );
+
+            return centeredLines;
+
         } );
+
+        setLinesVersion( ( oldVersion ) => {
+            return oldVersion + 1;
+        } );
+
+       // redraw();
+
+    }
+
+    // Is shape formed by the lines valid?
+    function isShapeValid( currentLines ) {
+
+        // Compare line coordinates to find out if shape is valid.
+        for(let index = 0; index < currentLines.length; index++ ) {
+
+            // Next index.
+            let nextLineIndex = index < currentLines.length - 1 ? index + 1 : 0;
+
+            // Shape is not valid when subsequent line's end and start are not the same.
+            if( !comparePoints( currentLines[ index ].end, currentLines[ nextLineIndex ].start, 5 ) ) {
+                return false;
+            }
+        }
+
+        // Shape is valid.
+        return true;
     }
 
      // Call back for redrawing the canvas.

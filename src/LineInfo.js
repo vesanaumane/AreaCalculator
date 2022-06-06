@@ -1,13 +1,14 @@
 import React from 'react';
 import { useState, useEffect } from "react";
 
-export default function LineInfo( { onChangeCallback, saveCallback, lineLength, lineAngle, lineId } ) {
+export default function LineInfo( { onChangeCallback, saveCallback, lineLength, lineAngle, lineAngleToNext, lineAngleLocked, lineId, lockButtonCanBeDisabled } ) {
 
     // Line info.
     const [ length, setLength ] = useState( lineLength );
     const [ angle, setAngle ] = useState( lineAngle );
-    const [ angleLocked, setAngleLocked ] = useState( false );
-
+    const [ angleLocked, setAngleLocked ] = useState( lineAngleLocked );
+    const [ angleBetweenLines, setAngleBetweenLines ] = useState( lineAngleToNext );
+    const [ disableLockButton, setDisableLockButton ] = useState( lockButtonCanBeDisabled );
 
     useEffect( () => {
 
@@ -19,13 +20,25 @@ export default function LineInfo( { onChangeCallback, saveCallback, lineLength, 
             setAngle( lineAngle )
         }
 
-    }, [ lineLength, lineAngle ] );
+        if( angleBetweenLines !== lineAngleToNext ) {
+            setAngleBetweenLines( lineAngleToNext )
+        }
+
+        if( angleLocked !== lineAngleLocked ) {
+            setAngleLocked( lineAngleLocked )
+        }
+
+        if( angleLocked === false ) {
+            setDisableLockButton( lockButtonCanBeDisabled );
+        }
+
+    }, [ lineLength, lineAngle, lineAngleLocked, lockButtonCanBeDisabled ] );
 
     useEffect( () => {
 
-        onChangeCallback( { id: lineId, length: length, angle: angle, angleLocked: angleLocked } );
+        onChangeCallback( { id: lineId, length: length, angle: angle, angleBetweenLines: angleBetweenLines, angleLocked: angleLocked } );
 
-    }, [ angle, length ]);
+    }, [ angle, length, angleBetweenLines, angleLocked ]);
 
     function handleLengthInput( evt ) {
         const input = evt.target.value;
@@ -41,6 +54,11 @@ export default function LineInfo( { onChangeCallback, saveCallback, lineLength, 
         setAngleLocked( !angleLocked );
     }
 
+    function handleAngleBetweenLinesInput( evt ) {
+        const input = evt.target.value;
+        setAngleBetweenLines( parseFloat( input ) );
+    }
+
     function handleOnClick() {
         saveCallback( { id: lineId, length: length, angle: angle } );
     }
@@ -50,24 +68,37 @@ export default function LineInfo( { onChangeCallback, saveCallback, lineLength, 
 
     return(
             <div key={ lineId } className="lineinfo">
-                    <label>{lineId}.</label>
+                <label id="line-id">{lineId}.</label>
+                <input
+                    id='input-length'
+                    type="number" 
+                    step="1"
+                    value={length} 
+                    onFocus={handleFocus} 
+                    onChange={ evt => { handleLengthInput( evt ) } } 
+                />
+                <input
+                    id='input-angle'
+                    type="number" 
+                    step="1" 
+                    min={0} 
+                    max={360} 
+                    value={Math.round( angle )}
+                    onFocus={handleFocus} 
+                    onChange={ evt => { handleAngleInput( evt ) } }
+                    disabled={!angleLocked}
+                />
+                <div id="between-lines">
+                    <label id="angle-to-next">To next: </label>
                     <input
-                        id='input-length'
-                        type="number" 
-                        step="1"
-                        value={length} 
-                        onFocus={handleFocus} 
-                        onChange={ evt => { handleLengthInput( evt ) } } 
-                    />
-                    <input
-                        id='input-angle'
+                        id='input-angle-to-next'
                         type="number" 
                         step="1" 
-                        min={-360} 
-                        max={360} 
-                        value={Math.round( angle )}
+                        min={0} 
+                        max={180} 
+                        value={Math.round( angleBetweenLines )}
                         onFocus={handleFocus} 
-                        onChange={ evt => { handleAngleInput( evt ) } }
+                        onChange={ evt => { handleAngleBetweenLinesInput( evt ) } }
                         disabled={!angleLocked}
                     />
                     <input
@@ -75,8 +106,11 @@ export default function LineInfo( { onChangeCallback, saveCallback, lineLength, 
                         type="checkbox"
                         checked={angleLocked}
                         onChange={handleAngleLockedInput}
+                        disabled={disableLockButton}
                     />
-                    <button onClick={ () => { handleOnClick() }}>Save</button>
+                    <button disabled={true} onClick={ () => { handleOnClick() }}>Save</button>
+                </div>
+
             </div> 
         );
 }

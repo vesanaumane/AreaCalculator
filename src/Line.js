@@ -11,7 +11,7 @@ export class Line {
         this.angle = findAngle( { start, end }, { start:{ x :0, y:0}, end: { x:1, y:0} } );
 
 
-        console.log( this.start, this.end, this.length, this.angle );
+        //console.log( this.start, this.end, this.length, this.angle );
         this.id = id;
     }
 
@@ -63,6 +63,14 @@ export class Line {
         this.printToConsole();
     }
 
+    // Move line without changing lenght or angle.
+    moveLine( dx, dy ) {
+        this.start.x = this.start.x + dx;
+        this.start.y = this.start.y + dy;
+        this.end.x = this.end.x + dx;
+        this.end.y = this.end.y + dy;
+    }
+
     setNewStartPoint( newStart ) {
         this.start = this.start = { x: newStart.x, y: newStart.y };
         this.angle = findAngle( { start:this.start, end:this.end }, { start:{ x :0, y:0}, end: { x:1, y:0} } );
@@ -72,7 +80,7 @@ export class Line {
     }
 
     printToConsole() {
-        console.log( this.id + ". start: " + this.start.x + ", " + this.start.y + " end: " + this.end.x + ", " + this.end.y + " l: " + this.length + " angle: " + this.angle  );
+        //console.log( this.id + ". start: " + this.start.x + ", " + this.start.y + " end: " + this.end.x + ", " + this.end.y + " l: " + this.length + " angle: " + this.angle  );
     }
 
     // Draw the line.
@@ -172,7 +180,7 @@ export class Line {
 }
 
 // Find angle.
-function findAngle( line, otherLine ) {
+export function findAngle( line, otherLine ) {
     
     // Calculate the difference.
     var dAx = line.end.x - line.start.x;
@@ -189,7 +197,7 @@ function findAngle( line, otherLine ) {
     angle = Math.abs( angle )
     
     // Round to 5 decimanls.
-    angle = roundDouble( angle, 5 );
+    angle = roundDouble( angle, 8 );
 
     // Use 0 rather than 360 degress for horizontal line.
     if( angle === 360 ) angle = 0;
@@ -269,9 +277,13 @@ function roundDouble( double, decimals ) {
     }
 }
 
-export function comparePoints( p1, p2 ) {
+export function comparePoints( p1, p2, precicion ) {
 
-    if( roundDouble( p1.x, 8 ) === roundDouble ( p2.x, 8 ) && roundDouble( p1.y, 8 ) === roundDouble ( p2.y, 8 ) ) {
+    if( !precicion ) {
+        precicion = 8;
+    }
+
+    if( roundDouble( p1.x, precicion ) === roundDouble ( p2.x, precicion ) && roundDouble( p1.y, precicion ) === roundDouble ( p2.y, precicion ) ) {
         return true;
     }
 

@@ -89,13 +89,13 @@
 .lineinfos #saveall {
   width: 50pt;
   margin-left: auto;
-  margin-right: 36pt;
+  margin-right: 26pt;
   margin-top: 10pt;
 }
 
 
 .lineinfos #titlerow {
-  width: 250pt;
+  width: 260pt;
   margin-bottom: 3pt;
   display: flex;
   flex-direction: row;
@@ -108,20 +108,21 @@
 } 
 
 .lineinfos #line-length {
-  width: 75pt;
+  width: 80pt;
 } 
 
 .lineinfos #line-angle {
-  width: 15%;
-  margin-left: 10pt;
-  margin-right: 5pt;
+  width: 38pt;
+  margin-left: 5pt;
+  margin-right: 10pt;
 } 
 
 .lineinfo {
   margin-bottom: 3pt;
+  width: 260pt;
 }
 
-.lineinfo label {
+.lineinfo #line-id {
   display:inline-block;
   width: 14pt;
   margin-right: 5pt
@@ -132,14 +133,32 @@
 }
 
 .lineinfo #input-angle {
-  width: 15%;
+  width: 38pt;
   margin-left: 3pt;
+}
+
+.lineinfo #between-lines {
+  width: 260pt;
+  margin-left: 0pt;
+  margin-top: 3pt;
+}
+
+.lineinfo #input-angle-to-next {
+  width: 38pt;
+  margin-left: 0pt;
 }
 
 .lineinfo #input-lock-angle {
   width: auto;
   margin-left: 10pt;
-  margin-right: 10pt;
+  margin-right: 20pt;
+}
+
+.lineinfo #angle-to-next {
+  display:inline-block;
+  width: 43pt;
+  margin-right: 2pt;
+  margin-left: 58pt;
 }
 
 .debug-data {
