@@ -40,74 +40,89 @@ export default function LineCanvas( { lines, width, height, drawingEnabled, requ
         ctx.closePath();
         ctx.stroke();
 
-
         // Draw the old lines.
-        if( lines.length > 3 && comparePoints( lines[ 0 ].start, lines[ lines.length - 1 ].end, 5 ) ) {
+        if( lines.length >= 3 && comparePoints( lines[ 0 ].start, lines[ lines.length - 1 ].end, 5 ) ) {
 
             // Shape is finished, zoom a little bit.
             var zoomedLines = [];
             lines.forEach( line => {
 
                 // Create a copy of the line.
-                zoomedLines.push( new Line( line.start, line.end, line.id ) );
+                zoomedLines.push( new Line( line.start, line.end, line.id, { length: line.length, angle: line.angle } ) );
             });
 
             // Calculate zoom factor.
-            let zoomFactor = 100;
+            let canvasDimensions = { width: canvas.current.width, height: canvas.current.height };
+            let zoomFactor = calculateZoom( canvasDimensions, lines );
             
             // Zoom.
             let previousLineEndDx = 0;
             let previousLineEndDy = 0;
             for( let index = 0; index < zoomedLines.length; index++ ) {
 
-                // Multiply x and y coordinates by the zoom factor.
-               if( index === 0 ) {
-
-                    // In first line, just change the end point.
-                    zoomedLines[ index ].end.x = zoomedLines[ index ].end.x * zoomFactor;
-                    zoomedLines[ index ].end.y = zoomedLines[ index ].end.y * zoomFactor;
+                // First move this line according to the previous line's movement.
+                if( index !== 0 ) {
+                    zoomedLines[ index ].moveLine(  previousLineEndDx, previousLineEndDy );
                 }
-                else if( index === zoomedLines.length - 1 ) {
-                    
-                    // In last line, just change the starting point.
-                    zoomedLines[ index ].start.x = zoomedLines[ index ].start.x * zoomFactor;
-                    zoomedLines[ index ].start.y = zoomedLines[ index ].start.y * zoomFactor;
-                }
-                else { 
 
-                    // Other lines change both start and end.
-                    let currentLineEndX = zoomedLines[ index ].end.x;
-                    let currentLineEndY = zoomedLines[ index ].end.y;
-                    zoomedLines[ index ].moveLine( previousLineEndDx, previousLineEndDy );
-                    zoomedLines[ index ].setNewLength( zoomedLines[ index ].length + zoomFactor );
-                    previousLineEndDx = zoomedLines[ index ].end.x - currentLineEndX;
-                    previousLineEndDy = zoomedLines[ index ].end.y - currentLineEndY;
+                // Save the end point of this line.
+                let oldEndX = zoomedLines[ index ].end.x;
+                let oldEndY = zoomedLines[ index ].end.y;
 
-                    //zoomedLines[ index ].start.y = zoomedLines[ index ].start.y - zoomFactor;
-                    //zoomedLines[ index ].end.x = zoomedLines[ index ].end.x + zoomFactor;
-                    //zoomedLines[ index ].end.y = zoomedLines[ index ].end.y + zoomFactor;
-                }
+                // Set new length.
+                zoomedLines[ index ].setNewLength(  zoomedLines[ index ].length * zoomFactor );
+
+                // Calculate the diff for end point.
+                previousLineEndDx += zoomedLines[ index ].end.x - oldEndX;
+                previousLineEndDy += zoomedLines[ index ].end.y - oldEndY;
             }
+
+            // Center these zoomed lines.
+            zoomedLines = centerLinesInPlane( zoomedLines, canvasDimensions );
 
             // Draw the zoomed lines.
             zoomedLines.forEach( line => {
                 line.draw( ctx );
              });
         }
-     /*   } else {
+        else {
 
-            // Not finished shape, draw the lines as is.
+            // Shape is not done yet, draw as is.
             lines.forEach( line => {
                 line.draw( ctx );
              });
+
         }
-*/
-        lines.forEach( line => {
-            line.draw( ctx );
-         });
-        
 
     }, [ isDrawing, requestRedraw, start, end, lines ] );
+
+    // Calculate zoom factor.
+    function calculateZoom( canvasDimensions, lines ) {
+
+        // Parse all x and y coordinates from lines array.
+        let allX = lines.map( line => line.start.x );
+        allX = lines.map( line => line.end.x );
+        let allY = lines.map( line => line.start.y );
+        allY = lines.map( line => line.end.y );
+
+        // Get minimum and maximum x and y.
+        let minX = Math.min( ...allX );
+        let maxX = Math.max( ...allX );
+        let minY = Math.min( ...allY );
+        let maxY = Math.max( ...allY );
+
+        // Shape dimensions.
+        let shapeWidth = maxX - minX;
+        let shapeHeight = maxY - minY;
+
+        // Calculate zoom for width and height with some padding. 
+        let padding = 100;
+        let zoomX = ( canvasDimensions.width - padding ) / shapeWidth;
+        let zoomY = ( canvasDimensions.height - padding ) / shapeHeight;
+
+        // Return the smaller one.
+        return Math.min( zoomX, zoomY );
+    }
 
     // When mouse is down, start drawing.
     function handleMouseDown( e ) {

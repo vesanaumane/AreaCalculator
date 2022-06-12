@@ -3,18 +3,31 @@ import { calculateLength, angleToRadians, roundDouble, calculateAngleBetweenLine
 // Represents one line.
 export class Line {
 
-    constructor( start, end, id ) {
+    constructor( start, end, id, setLabelData ) {
         this.start = { x: start.x, y: start.y };
         this.end = { x: end.x, y: end.y };
-        this.length = calculateLength( this.start, this.end );
-        
-
-        // Calculate angle between x-axis and the line.
-        this.angle = calculateAngleBetweenLines( { start, end }, { start:{ x :0, y:0}, end: { x:1, y:0} } );
-
-
-        //console.log( this.start, this.end, this.length, this.angle );
         this.id = id;
+
+        // Calculate lenght and angle.
+        if( !setLabelData ) {
+
+            // Label data is not locked.
+            this.labelDataIsLocked = false;
+
+            // Length is distance between the start and end point.
+            this.length = calculateLength( this.start, this.end );
+
+            // Calculate angle between x-axis and the line.
+            this.angle = calculateAngleBetweenLines( { start, end }, { start:{ x :0, y:0}, end: { x:1, y:0} } );
+        } else {
+
+            // Label data is locked.
+            this.labelDataIsLocked = true;
+
+            // Save label data.
+            this.length = setLabelData.length;
+            this.angle = setLabelData.angle;
+        }  
     }
 
     // Calculate new end coordinates when setting new length.
@@ -39,7 +52,9 @@ export class Line {
         this.end = { x: x2 + dl * dx, y: y2 + dl * dy };
 
         // Save the length.
-        this.length = calculateLength( this.start, this.end );
+        if( !this.labelDataIsLocked ) {
+            this.length = calculateLength( this.start, this.end );
+        }
 
         this.printToConsole();
     }
@@ -57,10 +72,14 @@ export class Line {
         this.end = { x: newX, y: newY };
 
         // Save the length.
-        this.length = calculateLength( this.start, this.end );
-
+        if( !this.labelDataIsLocked ) {
+            this.length = calculateLength( this.start, this.end );
+        }
+        
         // Calculate angle between x-axis and the line.
-        this.angle = newAngle;
+        if( !this.labelDataIsLocked ) {
+            this.angle = newAngle;
+        }
 
         this.printToConsole();
     }
@@ -75,8 +94,11 @@ export class Line {
 
     setNewStartPoint( newStart ) {
         this.start = this.start = { x: newStart.x, y: newStart.y };
-        this.angle = calculateAngleBetweenLines( { start:this.start, end:this.end }, { start:{ x :0, y:0}, end: { x:1, y:0} } );
-        this.length = calculateLength( this.start, this.end );
+
+        if( !this.labelDataIsLocked ) {
+            this.angle = calculateAngleBetweenLines( { start:this.start, end:this.end }, { start:{ x :0, y:0}, end: { x:1, y:0} } );
+            this.length = calculateLength( this.start, this.end );
+        }
 
         this.printToConsole();
     }
@@ -104,11 +126,11 @@ export class Line {
 
         // Draw the endings for the line.
         ctx.beginPath();
-		ctx.arc( x1,y1,2,0,Math.PI*2,false);
+		ctx.arc( x1, y1, 2, 0, Math.PI * 2, false);
 		ctx.fill();
 		ctx.stroke();
 		ctx.beginPath();
-		ctx.arc( x2, y2,2,0,Math.PI*2,false);
+		ctx.arc( x2, y2, 2 ,0 , Math.PI * 2, false);
 		ctx.fill();
 		ctx.stroke();
 
