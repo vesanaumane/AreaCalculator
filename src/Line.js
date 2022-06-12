@@ -150,19 +150,15 @@ export class Line {
         var y1 = Math.round( this.start.y );
         var y2 = Math.round( this.end.y );
 
-        // Create points with these rounded points.
-        var p1 = { x:x1, y:y1 };
-        var p2 = { x:x2, y:y2 };
-
         //Calculate coordinate deltas.
         var dx = x2 - x1;
         var dy = y2 - y1;
 
-        // Make the text to draw as: l: <length> a: <angle>
+        // Make the text to draw as: <id>. l=<length> a=<angle>
         var textToDraw = this.id + ".  l=" + roundDouble( this.length, 2 ) + "  α=" + roundDouble( this.angle, 0 ) + "°";
 
         // Make sure the text fits to the line.
-        var len = Math.round( this.length )
+        var len = this.labelDataIsLocked ? Math.round ( calculateLength( this.start, this.end ) ) : Math.round( this.length )
 		var avail = len - 2 * padding;
 		if( ctx.measureText && ctx.measureText( textToDraw ).width > avail ){
 			while( textToDraw && ctx.measureText( textToDraw + "…" ).width > avail ) {
@@ -174,13 +170,17 @@ export class Line {
 
 		// Keep text upright
         var angle = Math.atan2( dy,dx );
-        var p;
-        if (angle < -Math.PI/2 || angle > Math.PI/2 ){
+        if( angle < - Math.PI/2 || angle > Math.PI/2 ){
             angle -= Math.PI;
         }
 
+        // Create points with rounded coordinates.
+        var p1 = { x:x1, y:y1 };
+        var p2 = { x:x2, y:y2 };
+
         // Add padding from the starting point.
         var pad;
+        var p;
         if( alignment === 'center' ) {
             p = p1;
             pad = 1/2;
@@ -190,13 +190,39 @@ export class Line {
             pad = padding / len * ( left ? 1 : -1 );
         }
       
-        // Create small cap between the line and the text.
 
+
+        // Create small cap between the line and the text.
+        // Create a line perpeticular to this line with a length of the cap.
+        let perpeticularLine = new Line( p1, p2 );
+
+        // Set angle and length depending on which sector we are in.
+        if( this.angle <= 90 ) {
+            perpeticularLine.setNewAngle( this.angle + 270 );
+            perpeticularLine.setNewLength( 5 );
+        }
+        else if( this.angle > 90 && this.angle < 180 ) {
+            perpeticularLine.setNewAngle( this.angle + 270 );
+            perpeticularLine.setNewLength( 15 );
+        }
+        else if( this.angle >= 180 && this.angle < 270 ) {
+            perpeticularLine.setNewAngle( this.angle + 270 );
+            perpeticularLine.setNewLength( 15 );
+        }
+        else{
+            perpeticularLine.setNewAngle( this.angle + 270 );
+            perpeticularLine.setNewLength( 5 );
+        }
+        
+
+        p = perpeticularLine.end;
+
+        // Draw.
         ctx.save();
         ctx.fillStyle = '#666';
-        ctx.font  = '8pt Arial';
+        ctx.font  = '10pt Arial';
         ctx.textAlign = alignment;
-        ctx.translate( p.x+dx*pad, p.y+dy*pad  );
+        ctx.translate( p.x + dx * pad, p.y + dy * pad  );
         ctx.rotate( angle );
         ctx.fillText( textToDraw ,0 ,0 );
         ctx.restore();
