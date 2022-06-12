@@ -1,5 +1,5 @@
 import React from 'react';
-import { Line } from "./Line.js"
+import { Line, comparePoints } from "./Line.js"
 import { useState, useRef, useEffect } from "react";
 
 export default function LineCanvas( { lines, width, height, drawingEnabled, requestRedraw, addLineCallback } ) {
@@ -21,7 +21,7 @@ export default function LineCanvas( { lines, width, height, drawingEnabled, requ
     // redraw everything.
     useEffect( () => {
 
-      // Return if canvas has no value.
+        // Return if canvas has no value.
         if( !canvas.current ) return;
 
         // Clear canvas.
@@ -32,17 +32,83 @@ export default function LineCanvas( { lines, width, height, drawingEnabled, requ
         canvas.current.width = width;
         canvas.current.height = height;
 
-        // Draw the line.
+        // Draw the line user is drawing.
         ctx.beginPath();
         ctx.moveTo( start.x, start.y );
         ctx.lineTo( end.x, end.y );
         ctx.closePath();
         ctx.stroke();
 
-        // Draw the old lines too.
+
+        /*
+
+        // Draw the old lines.
+        if( lines.length > 3 && comparePoints( lines[ 0 ].start, lines[ lines.length - 1 ].end, 5 ) ) {
+
+            // Shape is finished, zoom a little bit.
+            var zoomedLines = [];
+            lines.forEach( line => {
+
+                // Create completely new lines.
+                
+
+                zoomedLines.push( JSON.parse( JSON.stringify( line ) ) );
+            });
+
+            // Calculate zoom factor.
+            let zoomFactor = 100;
+            
+            // Zoom.
+            let previousLineEndDx = 0;
+            let previousLineEndDy = 0;
+            for( let index = 0; index < zoomedLines.length; index++ ) {
+
+                // Multiply x and y coordinates by the zoom factor.
+               if( index === 0 ) {
+
+                    // In first line, just change the end point.
+                    zoomedLines[ index ].end.x = zoomedLines[ index ].end.x * zoomFactor;
+                    zoomedLines[ index ].end.y = zoomedLines[ index ].end.y * zoomFactor;
+                }
+                else if( index === zoomedLines.length - 1 ) {
+                    
+                    // In last line, just change the starting point.
+                    zoomedLines[ index ].start.x = zoomedLines[ index ].start.x * zoomFactor;
+                    zoomedLines[ index ].start.y = zoomedLines[ index ].start.y * zoomFactor;
+                }
+                else { 
+
+                    // Other lines change both start and end.
+                    let currentLineEndX = zoomedLines[ index ].end.x;
+                    let currentLineEndY = zoomedLines[ index ].end.y;
+                    zoomedLines[ index ].moveLine( previousLineEndDx, previousLineEndDy );
+                    zoomedLines[ index ].setNewLength( zoomedLines[ index ].length + zoomFactor );
+                    previousLineEndDx = zoomedLines[ index ].end.x - currentLineEndX;
+                    previousLineEndDy = zoomedLines[ index ].end.y - currentLineEndY;
+
+                    //zoomedLines[ index ].start.y = zoomedLines[ index ].start.y - zoomFactor;
+                    //zoomedLines[ index ].end.x = zoomedLines[ index ].end.x + zoomFactor;
+                    //zoomedLines[ index ].end.y = zoomedLines[ index ].end.y + zoomFactor;
+                //}
+            }
+
+            // Draw the zoomed lines.
+            zoomedLines.forEach( line => {
+                line.draw( ctx );
+             });
+
+        } else {
+
+            // Not finished shape, draw the lines as is.
+            lines.forEach( line => {
+                line.draw( ctx );
+             });
+        } */
+
         lines.forEach( line => {
-           line.draw( ctx );
-        });
+            line.draw( ctx );
+         });
+        
 
     }, [ isDrawing, requestRedraw, start, end, lines ] );
 
