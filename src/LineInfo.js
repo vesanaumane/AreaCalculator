@@ -108,7 +108,7 @@ export default function LineInfo( { onChangeCallback, saveCallback, lineLength, 
                         onChange={handleAngleLockedInput}
                         disabled={disableLockButton}
                     />
-                    <button disabled={true} onClick={ () => { handleOnClick() }}>Save</button>
+                    <button disabled={true} hidden={true} onClick={ () => { handleOnClick() }}>Save</button>
                 </div>
 
             </div> 

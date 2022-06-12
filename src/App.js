@@ -1,5 +1,6 @@
 import "./App.css";
-import { Line, comparePoints, findAngle } from "./Line.js"
+import { Line } from "./Line.js"
+import { comparePoints, centerLinesInPlane } from "./HelperMethods.js"
 import LineInfos from "./LineInfos.js"
 import React from 'react';
 import LineCanvas from "./LineCanvas.js"
@@ -445,9 +446,6 @@ export default function App() {
         setLinesVersion( ( oldVersion ) => {
             return oldVersion + 1;
         } );
-
-       // redraw();
-
     }
 
      // Source https://math.stackexchange.com/a/1367732
@@ -676,65 +674,7 @@ export default function App() {
         // Resize the canvas to fit the lines.
         const dimensions = resizeCanvas();
 
-        // Calculate the weigth point of the lines now.
-        var sumOfX = 0;
-        var sumOfY = 0;
-        previousLines.forEach( line => {
-            sumOfX += line.start.x;
-            sumOfY += line.start.y;
-        });
-
-        // Current weight point.
-        var weightPoint = { x: sumOfX / previousLines.length , y: sumOfY / previousLines.length };
-
-        // Canvas middle point.
-        var middlePoint = { x: dimensions.width / 2, y: dimensions.height / 2 };
-
-        // Calculate diff.
-        const dX = Math.round( middlePoint.x - weightPoint.x);
-        const dY = Math.round( middlePoint.y - weightPoint.y );
-
-        // Adjust lines.
-        const centeredLines = previousLines.slice();
-        const padding = 20;
-        var outsideX = padding;
-        var outsideY = padding;
-        for( var i = 0; i < centeredLines.length; ++i ) {
-
-            // Set the new coordinates.
-            centeredLines[ i ].start.x += dX;
-            centeredLines[ i ].start.y += dY;
-            centeredLines[ i ].end.x += dX;
-            centeredLines[ i ].end.y += dY;
-
-            // Check that nothing is outside.
-            if( centeredLines[ i ].start.x < outsideX ) outsideX = centeredLines[ i ].start.x;
-            if( centeredLines[ i ].end.x < outsideX ) outsideX = centeredLines[ i ].end.x;
-            if( centeredLines[ i ].start.y < outsideX ) outsideY = centeredLines[ i ].start.y;
-            if( centeredLines[ i ].end.y < outsideX ) outsideY = centeredLines[ i ].end.y;
-
-        }
-        
-        // Adjust if needed.
-        if( outsideX < padding || outsideY < padding ) {
-
-            // Round the coordinates.
-            outsideX = Math.round( outsideX );
-            outsideY = Math.round( outsideY );
-
-            // Calculate adjustment.
-            const adjustX = outsideX < padding ? padding - outsideX : 0;
-            const adjustY = outsideY < padding ? padding - outsideY : 0;
-
-            for( var j = 0; j < centeredLines.length; ++j ) {
-
-                // Set the new coordinates.
-                centeredLines[ j ].start.x += adjustX;
-                centeredLines[ j ].start.y += adjustY;
-                centeredLines[ j ].end.x += adjustX;
-                centeredLines[ j ].end.y += adjustY;
-            }
-        }
+        let centeredLines = centerLinesInPlane( previousLines, dimensions );
 
         resizeCanvas( true );
 
@@ -816,10 +756,10 @@ export default function App() {
 
                 <div className="drawing-buttons">
                     
-                    <button className="new-line-button" disabled={!isDrawingAllowed} onClick={ () => handleOnClickAddNewLine()}>
+                    <button className="new-line-button" disabled={!isDrawingAllowed} hidden={true} onClick={ () => handleOnClickAddNewLine()}>
                         Add line
                     </button>
-                    <button className="enddrawing_button" disabled={!isDrawingAllowed} onClick={ () => handleOnClickEnd()}>
+                    <button className="enddrawing_button" disabled={!isDrawingAllowed} hidden={true} onClick={ () => handleOnClickEnd()}>
                         Add last line
                     </button>
                     <button className="reset_button" onClick={ () => handleOnClickReset() }>

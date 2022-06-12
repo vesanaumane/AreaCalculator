@@ -1,5 +1,6 @@
 import React from 'react';
-import { Line, comparePoints } from "./Line.js"
+import { Line } from "./Line.js"
+import { comparePoints, centerLinesInPlane } from "./HelperMethods.js"
 import { useState, useRef, useEffect } from "react";
 
 export default function LineCanvas( { lines, width, height, drawingEnabled, requestRedraw, addLineCallback } ) {
@@ -40,8 +41,6 @@ export default function LineCanvas( { lines, width, height, drawingEnabled, requ
         ctx.stroke();
 
 
-        /*
-
         // Draw the old lines.
         if( lines.length > 3 && comparePoints( lines[ 0 ].start, lines[ lines.length - 1 ].end, 5 ) ) {
 
@@ -49,10 +48,8 @@ export default function LineCanvas( { lines, width, height, drawingEnabled, requ
             var zoomedLines = [];
             lines.forEach( line => {
 
-                // Create completely new lines.
-                
-
-                zoomedLines.push( JSON.parse( JSON.stringify( line ) ) );
+                // Create a copy of the line.
+                zoomedLines.push( new Line( line.start, line.end, line.id ) );
             });
 
             // Calculate zoom factor.
@@ -89,22 +86,22 @@ export default function LineCanvas( { lines, width, height, drawingEnabled, requ
                     //zoomedLines[ index ].start.y = zoomedLines[ index ].start.y - zoomFactor;
                     //zoomedLines[ index ].end.x = zoomedLines[ index ].end.x + zoomFactor;
                     //zoomedLines[ index ].end.y = zoomedLines[ index ].end.y + zoomFactor;
-                //}
+                }
             }
 
             // Draw the zoomed lines.
             zoomedLines.forEach( line => {
                 line.draw( ctx );
              });
-
-        } else {
+        }
+     /*   } else {
 
             // Not finished shape, draw the lines as is.
             lines.forEach( line => {
                 line.draw( ctx );
              });
-        } */
-
+        }
+*/
         lines.forEach( line => {
             line.draw( ctx );
          });

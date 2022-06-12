@@ -1,3 +1,5 @@
+import { calculateLength, angleToRadians, roundDouble, calculateAngleBetweenLines } from "./HelperMethods.js"
+
 // Represents one line.
 export class Line {
 
@@ -8,7 +10,7 @@ export class Line {
         
 
         // Calculate angle between x-axis and the line.
-        this.angle = findAngle( { start, end }, { start:{ x :0, y:0}, end: { x:1, y:0} } );
+        this.angle = calculateAngleBetweenLines( { start, end }, { start:{ x :0, y:0}, end: { x:1, y:0} } );
 
 
         //console.log( this.start, this.end, this.length, this.angle );
@@ -73,7 +75,7 @@ export class Line {
 
     setNewStartPoint( newStart ) {
         this.start = this.start = { x: newStart.x, y: newStart.y };
-        this.angle = findAngle( { start:this.start, end:this.end }, { start:{ x :0, y:0}, end: { x:1, y:0} } );
+        this.angle = calculateAngleBetweenLines( { start:this.start, end:this.end }, { start:{ x :0, y:0}, end: { x:1, y:0} } );
         this.length = calculateLength( this.start, this.end );
 
         this.printToConsole();
@@ -177,117 +179,6 @@ export class Line {
         ctx.fillText( textToDraw ,0 ,0 );
         ctx.restore();
     };
-}
-
-// Find angle.
-export function findAngle( line, otherLine ) {
-    
-    // Calculate the difference.
-    var dAx = line.end.x - line.start.x;
-    var dAy = line.end.y - line.start.y;
-    var dBx = otherLine.end.x - otherLine.start.x;
-    var dBy = otherLine.end.y - otherLine.start.y;
-    var angle = Math.atan2( dAx * dBy - dAy * dBx, dAx * dBx + dAy * dBy );
-    
-    // Convert to degrees.
-    angle = angleToDegrees( angle );
-
-    // Use only positive angles.
-    // angle = angle < 0 ? angle + 360 : angle;
-    angle = Math.abs( angle )
-    
-    // Round to 5 decimanls.
-    angle = roundDouble( angle, 8 );
-
-    // Use 0 rather than 360 degress for horizontal line.
-    if( angle === 360 ) angle = 0;
-
-    // Make sure the line angle is in correct range. Keep in mind that
-    // canvas ( 0, 0 ) is in upper left corner and y axis is pointing down. 
-
-    // Line going down and right should be between 0 - 90 degress.
-    if( line.end.y >= line.start.y && line.end.x >= line.start.x ) {
-        
-        // Adjust angle if needed.
-        if( !( angle >= 0 && angle <= 90 ) ) {
-            
-            angle = 360 - angle
-        }
-    } else if( line.end.y >= line.start.y && line.end.x <= line.start.x ) {
-
-        // Line going down and left should be between 90 - 180 degrees.
-    
-        // Adjust angle if needed.
-        if( !( angle > 90 && angle <= 180 ) ) {
-            
-            angle = 360 - angle
-        }
-    } else if( line.end.y <= line.start.y && line.end.x <= line.start.x ) {
-
-        // Line going up and left should be between 180 - 270 degress.
-        
-        // Adjust angle if needed.
-        if( !( angle > 180 && angle <= 270 ) ) {
-            
-            angle = 360 - angle
-        }
-    } else if( line.end.y <= line.start.y && line.end.x >= line.start.x ) {
-
-        // Line going up and right should be between 270 - 360 degress.
-
-        // Adjust angle if needed.
-        if( !( angle > 270 && angle <= 360 ) ) {
-            
-            angle = 360 - angle
-
-            if( angle === 360 ) {
-                angle = 0;
-            }
-        }
-    }
-
-    // Return the angle.
-    return angle;
-}
-
-
-function calculateLength( start, end ) {
-
-    return roundDouble( Math.sqrt( Math.pow( start.x - end.x, 2 ) + Math.pow( start.y - end.y, 2 ) ), 8 );
-}
-
-function angleToRadians( angleInDegrees ) {
-    return  angleInDegrees  * (  Math.PI / 180.0 );
-}
-
-
-function angleToDegrees( angleInRadians ) {
-    return angleInRadians * ( 180.0 /(  Math.PI ) );
-}
-
-function roundDouble( double, decimals ) {
-
-    // Round.
-    if( decimals > 0 )
-    {
-        var decimalPart =  Math.pow( 10, decimals );
-        return Math.round( ( double + Number.EPSILON ) * decimalPart ) / decimalPart;
-    } else {
-        return Math.round( double );
-    }
-}
-
-export function comparePoints( p1, p2, precicion ) {
-
-    if( !precicion ) {
-        precicion = 8;
-    }
-
-    if( roundDouble( p1.x, precicion ) === roundDouble ( p2.x, precicion ) && roundDouble( p1.y, precicion ) === roundDouble ( p2.y, precicion ) ) {
-        return true;
-    }
-
-    return false;
 }
 
 // Calculate offsets for the coordinates, when setting new length.
