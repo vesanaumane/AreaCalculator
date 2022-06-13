@@ -1,6 +1,6 @@
 import React from 'react';
 import { Line } from "./Line.js"
-import { comparePoints, centerLinesInPlane } from "./HelperMethods.js"
+import { comparePoints, roundDouble, calculateLength, centerLinesInPlane } from "./HelperMethods.js"
 import { useState, useRef, useEffect } from "react";
 
 export default function LineCanvas( { lines, width, height, drawingEnabled, requestRedraw, addLineCallback } ) {
@@ -45,10 +45,12 @@ export default function LineCanvas( { lines, width, height, drawingEnabled, requ
 
             // Shape is finished, zoom a little bit.
             var zoomedLines = [];
+            var zoomedLineLabelData = [];
             lines.forEach( line => {
 
                 // Create a copy of the line.
-                zoomedLines.push( new Line( line.start, line.end, line.id, { length: line.length, angle: line.angle } ) );
+                zoomedLines.push( new Line( line.start, line.end, line.id ) );
+                zoomedLineLabelData.push( { id: line.id, length: line.length, angle: line.angle })
             });
 
             // Calculate zoom factor.
@@ -81,20 +83,147 @@ export default function LineCanvas( { lines, width, height, drawingEnabled, requ
             zoomedLines = centerLinesInPlane( zoomedLines, canvasDimensions );
 
             // Draw the zoomed lines.
-            zoomedLines.forEach( line => {
-                line.draw( ctx );
-             });
+            for( let i = 0; i < zoomedLines.length; i++ ) {
+                const line = zoomedLines[ i ];
+                const lineLabelData = zoomedLineLabelData[ i ];
+                drawLine( ctx, line, lineLabelData );
+                
+            }
         }
         else {
 
             // Shape is not done yet, draw as is.
             lines.forEach( line => {
-                line.draw( ctx );
+                drawLine( ctx, line );
              });
 
         }
 
     }, [ isDrawing, requestRedraw, start, end, lines ] );
+
+
+    // Draw the line.
+    function drawLine ( ctx, line, lineLabelData ) {
+
+        // Round coordinates to nearest integer.
+        var x1 = Math.round( line.start.x );
+        var x2 = Math.round( line.end.x );
+        var y1 = Math.round( line.start.y );
+        var y2 = Math.round( line.end.y );
+
+        // Draw the actual line.
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.moveTo( x1, y1 );
+        ctx.lineTo( x2, y2 );
+        ctx.closePath();
+        ctx.stroke();
+
+        // Draw the endings for the line.
+        ctx.beginPath();
+		ctx.arc( x1, y1, 2, 0, Math.PI * 2, false);
+		ctx.fill();
+		ctx.stroke();
+		ctx.beginPath();
+		ctx.arc( x2, y2, 2 ,0 , Math.PI * 2, false);
+		ctx.fill();
+		ctx.stroke();
+
+        // Draw label to the line.
+        drawLabelForLine( ctx, 'center', line, lineLabelData )
+    };
+
+    // Draw the label to the line.
+    function drawLabelForLine( ctx, alignment, line, lineLabelData ) {
+
+        // Use center alignment if not set. Other settings are left and right.
+        if( !alignment ) alignment = 'center';
+      
+        // Round coordinates to nearest integer.
+        let x1 = Math.round( line.start.x );
+        let x2 = Math.round( line.end.x );
+        let y1 = Math.round( line.start.y );
+        let y2 = Math.round( line.end.y );
+
+        //Calculate coordinate deltas.
+        let dx = x2 - x1;
+        let dy = y2 - y1;
+
+        // Make the text to draw as: <id>. l=<length> a=<angle>
+        let lengthText = !lineLabelData ? line.length : lineLabelData.length;
+        let angleText = !lineLabelData ? line.angle : lineLabelData.angle;
+        let textToDraw = line.id + ".  l=" + roundDouble( lengthText, 2 ) + "  α=" + roundDouble( angleText, 0 ) + "°";
+
+        // Make sure the text fits to the line.
+        let len = Math.round( line.length );
+        let padding = 10;
+		let avail = len - 2 * padding;
+		if( ctx.measureText && ctx.measureText( textToDraw ).width > avail ){
+			while( textToDraw && ctx.measureText( textToDraw ).width > avail && textToDraw.length > 2 ) {
+                textToDraw = textToDraw.slice( 0, -1 );
+            }
+		}
+    
+
+		// Keep text upright
+        let angle = Math.atan2( dy,dx );
+        if( angle < - Math.PI/2 || angle > Math.PI/2 ){
+            angle -= Math.PI;
+        }
+
+        // Create points with rounded coordinates.
+        let p1 = { x:x1, y:y1 };
+        let p2 = { x:x2, y:y2 };
+
+        // Add padding from the starting point.
+        let pad;
+        let p;
+        if( alignment === 'center' ) {
+            p = p1;
+            pad = 1/2;
+        } else {
+            let left = alignment === 'left';
+            p = left ? p1 : p2;
+            pad = padding / len * ( left ? 1 : -1 );
+        }
+      
+
+
+        // Create small cap between the line and the text.
+        // Create a line perpeticular to this line with a length of the cap.
+        let perpeticularLine = new Line( p1, p2 );
+
+        // Set angle and length depending on which sector we are in.
+        if( line.angle <= 90 ) {
+            perpeticularLine.setNewAngle( line.angle + 270 );
+            perpeticularLine.setNewLength( 5 );
+        }
+        else if( line.angle > 90 && line.angle < 180 ) {
+            perpeticularLine.setNewAngle( line.angle + 270 );
+            perpeticularLine.setNewLength( 15 );
+        }
+        else if( line.angle >= 180 && line.angle < 270 ) {
+            perpeticularLine.setNewAngle( line.angle + 270 );
+            perpeticularLine.setNewLength( 15 );
+        }
+        else{
+            perpeticularLine.setNewAngle( line.angle + 270 );
+            perpeticularLine.setNewLength( 5 );
+        }
+        
+
+        p = perpeticularLine.end;
+
+        // Draw.
+        ctx.save();
+        ctx.fillStyle = '#666';
+        ctx.font  = '10pt Arial';
+        ctx.textAlign = alignment;
+        ctx.translate( p.x + dx * pad, p.y + dy * pad  );
+        ctx.rotate( angle );
+        ctx.fillText( textToDraw ,0 ,0 );
+        ctx.restore();
+    };
 
     // Calculate zoom factor.
     function calculateZoom( canvasDimensions, lines ) {
