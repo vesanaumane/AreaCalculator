@@ -20,11 +20,17 @@ export default function App() {
     // All the lines.
     const [ lines, setLines ] = useState( [] );
 
+    // Second if calculations have two results.
+    const [ secondaryLines, setSecondaryLines ] = useState( [] );
+
     // Version number for the lines.
     const [ linesVersion, setLinesVersion ] = useState( 0 );
 
     // Area.
     const [ area, setArea ] = useState( 0 );
+
+    // Secondary area.
+    const [ secondaryArea, setSecondaryArea ] = useState( 0 );
 
     // Boolean for triggering redraw.
     const [ requestRedraw, setRequestRedraw ] = useState( "0" );
@@ -220,6 +226,8 @@ export default function App() {
     // Call back for getting the data from input fields.
     function modifyAllLines ( input ) {
 
+        // Calculate also secondary lines if there is another result.
+        let newSecondaryLines = [];
         setLines( ( oldLines ) => {
 
             // Local function for getting next id in line's array.
@@ -282,6 +290,7 @@ export default function App() {
 
                     // Save the line.
                     newLines.push( newLine );
+                    newSecondaryLines.push( new Line( newLine.start, newLine.end, newLine.id ) );
 
                     // Set also next line if angle was fixed.
                     saveNextLineAngle = input[ inputIndex ].angleLocked;
@@ -318,9 +327,13 @@ export default function App() {
                     // Calculate the unknown point.
                     let unknownPoint = calculateLastPointInTriangle( knownPoint0, knownPoint1, r1, r2, R );
 
-                    // Create the last two lines.
+                    // Create the last two lines for the main result.
                     newLines.push( new Line( helperLine.end,  unknownPoint.result2, input[ inputIndex ].id ) );
                     newLines.push( new Line( unknownPoint.result2, helperLine.start, input[ nextId ].id ) );
+
+                    // Create the last two lines for the secondary result.
+                    newSecondaryLines.push( new Line( helperLine.end,  unknownPoint.result1, input[ inputIndex ].id ) );
+                    newSecondaryLines.push( new Line( unknownPoint.result1, helperLine.start, input[ nextId ].id ) );
 
                     // Shape is finished.
                     break;
@@ -443,9 +456,17 @@ export default function App() {
 
         } );
 
+        // Update also secondary lines data.
+        setSecondaryLines( oldSecondaryLines => {
+            calculateArea( newSecondaryLines, true );
+            return newSecondaryLines;
+        } ) ;
+
+        // Lines were changed.
         setLinesVersion( ( oldVersion ) => {
             return oldVersion + 1;
         } );
+
     }
 
      // Source https://math.stackexchange.com/a/1367732
@@ -514,7 +535,7 @@ export default function App() {
 
 
     // Calculate area. https://www.mathsisfun.com/geometry/area-irregular-polygons.html
-    function calculateArea( areaLines ) {
+    function calculateArea( areaLines, isSecondary ) {
 
          // Calculate area.
          var areas = [];
@@ -545,13 +566,19 @@ export default function App() {
          result =  Math.round( ( result + Number.EPSILON ) * decimalPart ) / decimalPart;
  
          // Set the area.
-         setArea( result  );
+         if( isSecondary ) {
+             setSecondaryArea( result );
+         }
+         else {
+            setArea( result  );
+         }
     }
 
     function handleOnClickReset() {
 
         // Empty lines.
         setLines( [] );
+        setSecondaryLines( [] );
 
         // Update debug data.
         updateDebugData( [] );
@@ -561,6 +588,7 @@ export default function App() {
 
         // Area is zero.
         setArea( 0 );
+        setSecondaryArea( 0 );
 
         // Resize canvas.
         resizeCanvas();
@@ -738,6 +766,7 @@ export default function App() {
                 <div className="canvas-line">
                         <LineCanvas
                             lines={lines}
+                            secondaryLines={secondaryLines}
                             addLineCallback={saveNewLine}
                             width={canvasWidth}
                             height={canvasHeight}
@@ -774,7 +803,10 @@ export default function App() {
                     <label>Area:</label>
                 </div>
                 <div>
-                    <span>{area}</span>
+                    <span id={ secondaryLines.length === 0 ? "primary-area" : "primary-area-colour" }>{area}</span>
+                </div>
+                <div hidden={secondaryLines.length === 0}>
+                    <span id="secondary-area">{secondaryArea}</span>
                 </div>
             </div>
 

@@ -3,7 +3,7 @@ import { Line } from "./Line.js"
 import { comparePoints, roundDouble, calculateLength, centerLinesInPlane } from "./HelperMethods.js"
 import { useState, useRef, useEffect } from "react";
 
-export default function LineCanvas( { lines, width, height, drawingEnabled, requestRedraw, addLineCallback } ) {
+export default function LineCanvas( { lines, secondaryLines, width, height, drawingEnabled, requestRedraw, addLineCallback } ) {
 
     // Canvas.
     const canvas = useRef();
@@ -44,50 +44,43 @@ export default function LineCanvas( { lines, width, height, drawingEnabled, requ
         if( lines.length >= 3 && comparePoints( lines[ 0 ].start, lines[ lines.length - 1 ].end, 5 ) ) {
 
             // Shape is finished, zoom a little bit.
-            var zoomedLines = [];
-            var zoomedLineLabelData = [];
-            lines.forEach( line => {
-
-                // Create a copy of the line.
-                zoomedLines.push( new Line( line.start, line.end, line.id ) );
-                zoomedLineLabelData.push( { id: line.id, length: line.length, angle: line.angle })
-            });
 
             // Calculate zoom factor.
             let canvasDimensions = { width: canvas.current.width, height: canvas.current.height };
             let zoomFactor = calculateZoom( canvasDimensions, lines );
-            
+
             // Zoom.
-            let previousLineEndDx = 0;
-            let previousLineEndDy = 0;
-            for( let index = 0; index < zoomedLines.length; index++ ) {
-
-                // First move this line according to the previous line's movement.
-                if( index !== 0 ) {
-                    zoomedLines[ index ].moveLine(  previousLineEndDx, previousLineEndDy );
-                }
-
-                // Save the end point of this line.
-                let oldEndX = zoomedLines[ index ].end.x;
-                let oldEndY = zoomedLines[ index ].end.y;
-
-                // Set new length.
-                zoomedLines[ index ].setNewLength(  zoomedLines[ index ].length * zoomFactor );
-
-                // Calculate the diff for end point.
-                previousLineEndDx += zoomedLines[ index ].end.x - oldEndX;
-                previousLineEndDy += zoomedLines[ index ].end.y - oldEndY;
-            }
-
-            // Center these zoomed lines.
-            zoomedLines = centerLinesInPlane( zoomedLines, canvasDimensions );
+            let zoomedLines = zoomLines( lines, zoomFactor, canvasDimensions );
+            let zoomedSecondaryLines = null;
+            if( secondaryLines && secondaryLines.length === lines.length ) {
+                zoomedSecondaryLines = zoomLines( secondaryLines, zoomFactor, canvasDimensions, zoomedLines.lines[ 0 ].start );
+            }  
 
             // Draw the zoomed lines.
-            for( let i = 0; i < zoomedLines.length; i++ ) {
-                const line = zoomedLines[ i ];
-                const lineLabelData = zoomedLineLabelData[ i ];
-                drawLine( ctx, line, lineLabelData );
-                
+            for( let i = 0; i < zoomedLines.lines.length; i++ ) {
+
+                // Draw also secondary lines.
+                if( secondaryLines && secondaryLines.length === lines.length ) {
+
+                    // Draw only if the lines are not identical.
+                    if( !( comparePoints( zoomedLines.lines[ i ].start, zoomedSecondaryLines.lines[ i ].start ) 
+                        && comparePoints( zoomedLines.lines[ i ].end, zoomedSecondaryLines.lines[ i ].end ) ) ) {
+                        
+                        // Draw the secondary line with different colour than the main line.
+                        drawLine( ctx, zoomedLines.lines[ i ], zoomedLines.labelData[ i ], '#1a85ff' );
+                        drawLine( ctx, zoomedSecondaryLines.lines[ i ], zoomedSecondaryLines.labelData[ i ], '#d41159' );
+                    }
+                    else {
+
+                         // Draw only the main line with black.
+                        drawLine( ctx, zoomedLines.lines[ i ], zoomedLines.labelData[ i ], '#000' );
+                    }
+                }
+                else {
+
+                     // Draw the main line.
+                    drawLine( ctx, zoomedLines.lines[ i ], zoomedLines.labelData[ i ] );
+                }
             }
         }
         else {
@@ -101,9 +94,67 @@ export default function LineCanvas( { lines, width, height, drawingEnabled, requ
 
     }, [ isDrawing, requestRedraw, start, end, lines ] );
 
+    // Zoom lines.
+    function zoomLines( lines, zoomFactor, canvasDimensions, startPoint ) {
+        
+        // Craete copy of the lines and collect data.
+        let zoomedLines = [];
+        let zoomedLineLabelData = [];
+        lines.forEach( line => {
+
+            // Create a copy of the line.
+            zoomedLines.push( new Line( line.start, line.end, line.id ) );
+            zoomedLineLabelData.push( { id: line.id, length: line.length, angle: line.angle })
+        });
+
+        // Zoom.
+        let previousLineEndDx = 0;
+        let previousLineEndDy = 0;
+        for( let index = 0; index < zoomedLines.length; index++ ) {
+
+            // First move this line according to the previous line's movement.
+            if( index !== 0 ) {
+                zoomedLines[ index ].moveLine(  previousLineEndDx, previousLineEndDy );
+            }
+
+            // Save the end point of this line.
+            let oldEndX = zoomedLines[ index ].end.x;
+            let oldEndY = zoomedLines[ index ].end.y;
+
+            // Set new length.
+            zoomedLines[ index ].setNewLength(  zoomedLines[ index ].length * zoomFactor );
+
+            // Calculate the diff for end point.
+            previousLineEndDx += zoomedLines[ index ].end.x - oldEndX;
+            previousLineEndDy += zoomedLines[ index ].end.y - oldEndY;
+        }
+
+        // Move to start from the start point or center these zoomed lines.
+        if( startPoint ) {
+
+            // Calculate how much we need to move the whole shape.
+            let dx = startPoint.x - zoomedLines[ 0 ].start.x;
+            let dy = startPoint.y - zoomedLines[ 0 ].start.y;
+
+            // Move every line accodingly.
+            for( let i = 0; i < zoomedLines.length; i++ ) {
+                zoomedLines[ i ].moveLine( dx, dy );
+            }
+        }
+        else {
+            zoomedLines = centerLinesInPlane( zoomedLines, canvasDimensions );
+        }
+        
+
+        // Return zoomed lines and the data.
+        return { lines: zoomedLines, labelData: zoomedLineLabelData };
+    }
 
     // Draw the line.
-    function drawLine ( ctx, line, lineLabelData ) {
+    function drawLine ( ctx, line, lineLabelData, lineColour ) {
+
+        // Set line colour to black if not given.
+        if( !lineColour ) lineColour = '#000'
 
         // Round coordinates to nearest integer.
         var x1 = Math.round( line.start.x );
@@ -113,6 +164,7 @@ export default function LineCanvas( { lines, width, height, drawingEnabled, requ
 
         // Draw the actual line.
         ctx.fillStyle = '#fff';
+        ctx.strokeStyle = lineColour;
         ctx.beginPath();
         ctx.moveTo( x1, y1 );
         ctx.lineTo( x2, y2 );
