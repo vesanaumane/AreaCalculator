@@ -333,15 +333,15 @@ export default function App() {
 
                     // Check if these lines creates valid shape.
                     let validShapeMain = !doLineIntersectWithAnyOfTheLines( lastLine1, newLines ) && !doLineIntersectWithAnyOfTheLines( lastLine2, newLines );
-                    //let validShapeMain = true;
 
                     // Create lines for other result.
                     let lastLine1Other = new Line( helperLine.end,  unknownPoint.result1, input[ inputIndex ].id );
                     let lastLine2Other = new Line( unknownPoint.result1, helperLine.start, input[ nextId ].id );
 
-                    // Check if these lines creates valid shape.
-                    let validShapeSecondary = !doLineIntersectWithAnyOfTheLines( lastLine1Other, newSecondaryLines ) && !doLineIntersectWithAnyOfTheLines( lastLine2Other, newSecondaryLines );
-                    //let validShapeSecondary = true;
+                    // Check if these lines creates valid shape. If triangle, set this always to false.
+                    let validShapeSecondary = input.length === 3 
+                        ? false 
+                        : !doLineIntersectWithAnyOfTheLines( lastLine1Other, newSecondaryLines ) && !doLineIntersectWithAnyOfTheLines( lastLine2Other, newSecondaryLines );
 
                     // Save to new lines, if the main result was not valid, or to secondary if both are valid. If neither is valid, show error.
                     if( validShapeMain && validShapeSecondary ) {
