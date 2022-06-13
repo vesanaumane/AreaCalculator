@@ -632,16 +632,8 @@ export default function App() {
         // Calculate angle for corners.
         const angle = 360 / createShapeCorners;
 
-        // Calculate length. If there are many cornes, the picture will be huge.
+        // Use 100 as a length for the lines.
         var length = 100;
-        if( createShapeCorners > 5 ) {
-
-            // Reduce length by 5 per additional corner after 5 corners.
-            length = length - 10 * ( createShapeCorners - 5 );
-
-            // Use 20 as minimum lenght.
-            length = length < 20 ?  20 : length;    
-        }
 
         // Create the lines.
         const newLines = [];

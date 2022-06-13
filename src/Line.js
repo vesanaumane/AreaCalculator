@@ -142,7 +142,7 @@ export class Line {
     drawLabel( ctx, alignment, padding ){
 
         if( !alignment ) alignment = 'center';
-        if( !padding ) padding = 0;
+        if( !padding ) padding = 10;
       
         // Round coordinates to nearest integer.
         var x1 = Math.round( this.start.x );
@@ -161,10 +161,9 @@ export class Line {
         var len = this.labelDataIsLocked ? Math.round ( calculateLength( this.start, this.end ) ) : Math.round( this.length )
 		var avail = len - 2 * padding;
 		if( ctx.measureText && ctx.measureText( textToDraw ).width > avail ){
-			while( textToDraw && ctx.measureText( textToDraw + "…" ).width > avail ) {
+			while( textToDraw && ctx.measureText( textToDraw ).width > avail && textToDraw.length > 2 ) {
                 textToDraw = textToDraw.slice( 0, -1 );
             }
-			textToDraw += "…";
 		}
     
 
