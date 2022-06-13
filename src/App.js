@@ -1,6 +1,6 @@
 import "./App.css";
 import { Line } from "./Line.js"
-import { comparePoints, centerLinesInPlane } from "./HelperMethods.js"
+import { comparePoints, centerLinesInPlane, doLineIntersectWithAnyOfTheLines } from "./HelperMethods.js"
 import LineInfos from "./LineInfos.js"
 import React from 'react';
 import LineCanvas from "./LineCanvas.js"
@@ -328,12 +328,68 @@ export default function App() {
                     let unknownPoint = calculateLastPointInTriangle( knownPoint0, knownPoint1, r1, r2, R );
 
                     // Create the last two lines for the main result.
-                    newLines.push( new Line( helperLine.end,  unknownPoint.result2, input[ inputIndex ].id ) );
-                    newLines.push( new Line( unknownPoint.result2, helperLine.start, input[ nextId ].id ) );
+                    let lastLine1 = new Line( helperLine.end,  unknownPoint.result2, input[ inputIndex ].id );
+                    let lastLine2 = new Line( unknownPoint.result2, helperLine.start, input[ nextId ].id );
+
+                    // Check if these lines creates valid shape.
+                    let validShapeMain = !doLineIntersectWithAnyOfTheLines( lastLine1, newLines ) && !doLineIntersectWithAnyOfTheLines( lastLine2, newLines );
+                    //let validShapeMain = true;
+
+                    // Create lines for other result.
+                    let lastLine1Other = new Line( helperLine.end,  unknownPoint.result1, input[ inputIndex ].id );
+                    let lastLine2Other = new Line( unknownPoint.result1, helperLine.start, input[ nextId ].id );
+
+                    // Check if these lines creates valid shape.
+                    let validShapeSecondary = !doLineIntersectWithAnyOfTheLines( lastLine1Other, newSecondaryLines ) && !doLineIntersectWithAnyOfTheLines( lastLine2Other, newSecondaryLines );
+                    //let validShapeSecondary = true;
+
+                    // Save to new lines, if the main result was not valid, or to secondary if both are valid. If neither is valid, show error.
+                    if( validShapeMain && validShapeSecondary ) {
+
+                        // Both are valid shapes, save them.
+                        newLines.push( lastLine1 );
+                        newLines.push( lastLine2 );
+                        newSecondaryLines.push( lastLine1Other );
+                        newSecondaryLines.push( lastLine2Other );
+                    }
+                    else if( !validShapeMain && validShapeSecondary ) {
+                        
+                        // Only the second lines create valid shape.
+
+                        // Save the result.
+                        newLines.push( lastLine1Other );
+                        newLines.push( lastLine2Other );
+
+                        // Empty the secondary result as there is no such thing.
+                        newSecondaryLines = [];
+                    }
+                    else if( validShapeMain && !validShapeSecondary ) {
+
+                        // Only the main lines create valid shape.
+
+                        // Save the result.
+                        newLines.push( lastLine1 );
+                        newLines.push( lastLine2 );
+
+                        // Empty the secondary result as there is no such thing.
+                        newSecondaryLines = [];
+                    }
+                    else {
+
+                        // Empty the secondary result and set the oldLines to the main result so those can be modified.
+                        newSecondaryLines = [];
+                        newLines.push( lastLine1 );
+                        newLines.push( lastLine2 );
+
+                        // TODO: Show error.
+                    }
+
+                    //newLines.push( new Line( helperLine.end,  unknownPoint.result2, input[ inputIndex ].id ) );
+                    //newLines.push( new Line( unknownPoint.result2, helperLine.start, input[ nextId ].id ) );
 
                     // Create the last two lines for the secondary result.
-                    newSecondaryLines.push( new Line( helperLine.end,  unknownPoint.result1, input[ inputIndex ].id ) );
-                    newSecondaryLines.push( new Line( unknownPoint.result1, helperLine.start, input[ nextId ].id ) );
+                    // newSecondaryLines.push( new Line( helperLine.end,  unknownPoint.result1, input[ inputIndex ].id ) );
+                    // newSecondaryLines.push( new Line( unknownPoint.result1, helperLine.start, input[ nextId ].id ) );
 
                     // Shape is finished.
                     break;
