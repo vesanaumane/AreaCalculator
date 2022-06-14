@@ -45,12 +45,20 @@ export default function LineInfo( { onChangeCallback, saveCallback, lineLength, 
 
     // Convert angle between lines to shape inner angle.
     function toInnerAngle( angle ) {
-        return 180 - angle;
+        let innerAngle = 180 - angle;
+        if( innerAngle < 0 ) {
+            innerAngle = 360 + innerAngle;
+        }
+        return innerAngle;
     }
 
     // Convert angle between lines to shape outer angle.
     function toOuterAngle( angle ) {
-        return 180 - angle;
+        let outerAngle = 180 - angle;
+        if( outerAngle < 0 ) {
+            outerAngle = 360 + outerAngle;
+        }
+        return outerAngle;
     }
 
     function handleLengthInput( evt ) {
