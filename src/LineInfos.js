@@ -6,6 +6,7 @@ export default function LineInfos( { lines, setAllCallback, setOneCallback } ) {
 
     const [ linesData, setLinesData ] = useState( [] );
     const [ canSaveAll, setCanSaveAll ] = useState( false );
+    const [ orientationSetInLine, setOrientationSetInLine ] = useState( -1 );
 
     useEffect( () => {
 
@@ -17,6 +18,7 @@ export default function LineInfos( { lines, setAllCallback, setOneCallback } ) {
         // Reset if new lines has no data.
         if( lines.length === 0 ) {
             setLinesData( [] );
+            setOrientationSetInLine( -1 );
             return;
         }
 
@@ -121,8 +123,16 @@ export default function LineInfos( { lines, setAllCallback, setOneCallback } ) {
             currentLines[ nextIndex ].angle = newAngle;
         }
         
-
+        // Save line data.
         setLinesData( currentLines );
+
+        // Check if orientation has changed value.
+        setOrientationSetInLine( orientationSetInLine === data.id 
+                ? data.orientationSetInLine
+                : orientationSetInLine === -1 
+                    ?  data.orientationSetInLine
+                    :  orientationSetInLine );
+
     }
 
     function GetNextLineIndex( currentLineIndex, maxIndex ) {
@@ -149,8 +159,8 @@ export default function LineInfos( { lines, setAllCallback, setOneCallback } ) {
                 <div id='titlerow' style={linesData.length === 0 ? { display: 'none' } : {} } >
                     <span id='line-number'>#</span>
                     <span id='line-length'>Length</span>
-                    <span id='line-angle'>Angle</span>
-                    <span id='line-lock-angle'>Lock</span>
+                    <span id='line-orientation'>Orientation</span>
+                    <span id='line-lock-angle'></span>
                 </div>
                 { linesData.map( linedata => 
                     <LineInfo
@@ -163,10 +173,11 @@ export default function LineInfos( { lines, setAllCallback, setOneCallback } ) {
                         lineAngleLocked={linedata.angleLocked}
                         lineId={linedata.id}
                         lockButtonCanBeDisabled={canSaveAll}
+                        orientationSet={ !( orientationSetInLine === -1 || orientationSetInLine === linedata.id ) }
                     /> 
                 ) }
                 <div id='saveall'>
-                    <button  hidden={linesData.length === 0} disabled={!canSaveAll} onClick={ () => { handleSaveAllOnClick() }}>Save all</button>
+                    <button  hidden={linesData.length === 0} disabled={!canSaveAll} onClick={ () => { handleSaveAllOnClick() }}>Calculate</button>
                 </div>
             </div>
             

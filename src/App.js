@@ -83,7 +83,7 @@ export default function App() {
         // Get new line coordinates.
         var line = getNewLine( 100, 90, lines );
 
-        // Stop drawing if lines create a closed loop. line.end.x == lines[ 0 ].start.x && line.end.y == lines[ 0 ].start.y
+        // Stop drawing if lines create a closed loop.
         var lastLine = false;
         if( lines.length > 0 && ( comparePoints( line.end, lines[ 0 ].start )  ) ) {
             setIsDrawingAllowed( false );

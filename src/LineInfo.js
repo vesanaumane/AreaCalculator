@@ -1,7 +1,7 @@
 import React from 'react';
 import { useState, useEffect } from "react";
 
-export default function LineInfo( { onChangeCallback, saveCallback, lineLength, lineAngle, lineAngleToNext, lineAngleLocked, lineId, lockButtonCanBeDisabled } ) {
+export default function LineInfo( { onChangeCallback, saveCallback, lineLength, lineAngle, lineAngleToNext, lineAngleLocked, lineId, lockButtonCanBeDisabled, orientationSet } ) {
 
     // Line info.
     const [ length, setLength ] = useState( lineLength );
@@ -10,6 +10,9 @@ export default function LineInfo( { onChangeCallback, saveCallback, lineLength, 
     const [ angleBetweenLines, setAngleBetweenLines ] = useState( lineAngleToNext );
     const [ angleBetweenLinesDisplay, setAngleBetweenLinesDisplay ] = useState( toInnerAngle( lineAngleToNext ) );
     const [ disableLockButton, setDisableLockButton ] = useState( lockButtonCanBeDisabled );
+    const [ orientation, setOrientation ] = useState( "" );
+    const [ orientationSetElseWhere, setOrientationSetElseWhere ] = useState( orientationSet );
+    const [ orientationVisible, setOrientatioVisible ] = useState( !orientationSet && lineAngleLocked )
 
     useEffect( () => {
 
@@ -33,14 +36,84 @@ export default function LineInfo( { onChangeCallback, saveCallback, lineLength, 
             setDisableLockButton( lockButtonCanBeDisabled );
         }
 
-    }, [ lineLength, lineAngle, lineAngleLocked, lockButtonCanBeDisabled, lineAngleToNext ] );
+        setOrientationSetElseWhere( orientationSet );
+        if( !orientationVisible && !orientationSet && lineAngleLocked && orientation !== "" ) {
+            let outerAngle = toOuterAngle( lineAngleToNext );
+            onChangeCallback( { id: lineId, length: lineLength, angle: lineAngle, angleBetweenLines: outerAngle, angleLocked: lineAngleLocked, orientationSetInLine:  lineAngleLocked ? lineId : -1  } );
+        }
+        setOrientatioVisible( !orientationSet && lineAngleLocked );
+
+    }, [ lineLength, lineAngle, lineAngleLocked, lockButtonCanBeDisabled, lineAngleToNext, orientationSet ] );
 
     useEffect( () => {
 
-        let outerAngle = toOuterAngle( angleBetweenLinesDisplay );
-        onChangeCallback( { id: lineId, length: length, angle: angle, angleBetweenLines: outerAngle, angleLocked: angleLocked } );
+        // Adjust the angle if set to horizontal or vertical.
+        let adjustAngle = false;
+        let adjustedAngle = 0;
+        if( !orientationSetElseWhere && angleLocked && orientation !== "" && orientation !== "Custom"  ) {
 
-    }, [ angle, length, angleBetweenLinesDisplay, angleLocked ]);
+            // Act according to which direction this line is pointing towards.
+            if( orientation === "Vertical" ) {
+
+                // Vertical. If angle is already vertical, leave as is.
+                // Otherwise adjust angle.
+                if( !( angle === 90 || angle === 270 ) ){
+
+                    // Adjust angle based on which direction it is pointing towards.
+                    adjustAngle = true;
+                    if( angle >= 0 && angle < 180) {
+                    
+                        // Line pointing down.
+        
+                        // Set to correct angle.
+                        adjustedAngle = 90
+        
+                    } else if( angle >= 180 ) {
+        
+                        // Line pointing up.
+                    
+                        // Set to correct angle.
+                        adjustedAngle = 270
+                    }
+                }
+            }
+            else if( orientation === "Horizontal" ) {
+
+                // Horizontal. If angle is already horizontal, leave as is.
+                // Otherwise adjust angle.
+                if( !( angle === 0 || angle === 180 ) ){
+
+                    // Adjust angle based on which direction it is pointing towards.
+                    adjustAngle = true;
+                    if( angle > 0 && angle < 180 ) {
+                    
+                        // Line pointing right.
+        
+                        // Set to correct angle.
+                        adjustedAngle = 0;
+
+                    } else if( angle > 180 ) {
+        
+                        // Line pointing left.
+                    
+                        // Set to correct angle.
+                        adjustedAngle = 180;
+                    }
+                }
+            } 
+        }
+
+        let outerAngle = toOuterAngle( angleBetweenLinesDisplay );
+        onChangeCallback( { 
+                id: lineId, 
+                length: length, 
+                angle: adjustAngle ? adjustedAngle : angle, 
+                angleBetweenLines: outerAngle, 
+                angleLocked: angleLocked, 
+                orientationSetInLine: orientation !== "" && angleLocked ? lineId : -1  
+            } );
+
+    }, [ angle, length, angleBetweenLinesDisplay, angleLocked, orientation ]);
 
 
     // Convert angle between lines to shape inner angle.
@@ -73,6 +146,7 @@ export default function LineInfo( { onChangeCallback, saveCallback, lineLength, 
 
     function handleAngleLockedInput() {
         setAngleLocked( !angleLocked );
+        setOrientatioVisible( !orientationSetElseWhere && !angleLocked );
     }
 
     function handleAngleBetweenLinesInput( evt ) {
@@ -82,6 +156,10 @@ export default function LineInfo( { onChangeCallback, saveCallback, lineLength, 
 
     function handleOnClick() {
         saveCallback( { id: lineId, length: length, angle: angle } );
+    }
+
+    function handleOrientation( evt) {
+        setOrientation( evt.target.value );
     }
 
     // Select all when clicking input.
@@ -98,6 +176,9 @@ export default function LineInfo( { onChangeCallback, saveCallback, lineLength, 
                     onFocus={handleFocus} 
                     onChange={ evt => { handleLengthInput( evt ) } } 
                 />
+                <input hidden={!orientationVisible} type="radio" checked={orientation === 'Horizontal'}  value="Horizontal" name={"orientation" + lineId} onChange={handleOrientation}/><label id='orientation-horizontal' hidden={!orientationVisible}>—</label>
+                <input hidden={!orientationVisible} type="radio" checked={orientation === 'Vertical'} value="Vertical" name={"orientation" + lineId} onChange={handleOrientation} /><label id='orientation-vertical' hidden={!orientationVisible}>|</label>
+                <input hidden={!orientationVisible} type="radio" checked={orientation === 'Custom'} value="Custom" name={"orientation" + lineId} onChange={handleOrientation}/><label id='orientation-custom' hidden={!orientationVisible}>Custom</label>
                 <input
                     id='input-angle'
                     type="number" 
@@ -108,9 +189,10 @@ export default function LineInfo( { onChangeCallback, saveCallback, lineLength, 
                     onFocus={handleFocus} 
                     onChange={ evt => { handleAngleInput( evt ) } }
                     disabled={!angleLocked}
+                    hidden={!orientationVisible || orientation !== "Custom"}
                 />
                 <div id="between-lines">
-                    <label id="angle-to-next">To next: </label>
+                    <label id="angle-to-next">∢</label>
                     <input
                         id='input-angle-to-next'
                         type="number" 
@@ -122,6 +204,7 @@ export default function LineInfo( { onChangeCallback, saveCallback, lineLength, 
                         onChange={ evt => { handleAngleBetweenLinesInput( evt ) } }
                         disabled={!angleLocked}
                     />
+                    <label id="lock-checkbox-label">Lock</label>
                     <input
                         id='input-lock-angle'
                         type="checkbox"

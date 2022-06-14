@@ -98,6 +98,9 @@
 
 
 
+
+
+
 .lineinfos {
   padding-top: 20pt;
 }
@@ -127,15 +130,21 @@
   width: 80pt;
 } 
 
-.lineinfos #line-angle {
+.lineinfos #line-orientation {
   width: 38pt;
-  margin-left: 5pt;
+  margin-left: 35pt;
   margin-right: 10pt;
 } 
 
+
+
+
+
+
+
 .lineinfo {
   margin-bottom: 3pt;
-  width: 260pt;
+  width: 280pt;
 }
 
 .lineinfo #line-id {
@@ -146,10 +155,23 @@
 
 .lineinfo #input-length {
   width: 75pt;
+  margin-right: 15pt;
 }
 
 .lineinfo #input-angle {
-  width: 38pt;
+  width: 30pt;
+  margin-left: 3pt;
+}
+
+.lineinfo #orientation-horizontal {
+  width: 10pt;
+  margin-right: 2pt;
+  margin-left: 2pt;
+}
+
+.lineinfo #orientation-vertical {
+  width: 10pt;
+  margin-right: 3pt;
   margin-left: 3pt;
 }
 
@@ -159,23 +181,34 @@
   margin-top: 3pt;
 }
 
+.lineinfo #angle-to-next {
+  display:inline-block;
+  width: auto;
+  margin-right: 2pt;
+  margin-left: 33pt;
+}
+
 .lineinfo #input-angle-to-next {
-  width: 38pt;
+  width: 30pt;
   margin-left: 0pt;
+}
+
+.lineinfo #lock-checkbox-label {
+  width: auto;
+  margin-left: 5pt;
 }
 
 .lineinfo #input-lock-angle {
   width: auto;
-  margin-left: 10pt;
+  margin-left: 5pt;
   margin-right: 20pt;
 }
 
-.lineinfo #angle-to-next {
-  display:inline-block;
-  width: 43pt;
-  margin-right: 2pt;
-  margin-left: 58pt;
-}
+
+
+
+
+
 
 .debug-data {
   text-align: left;
