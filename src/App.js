@@ -384,126 +384,15 @@ export default function App() {
                         // TODO: Show error.
                     }
 
-                    //newLines.push( new Line( helperLine.end,  unknownPoint.result2, input[ inputIndex ].id ) );
-                    //newLines.push( new Line( unknownPoint.result2, helperLine.start, input[ nextId ].id ) );
-
-                    // Create the last two lines for the secondary result.
-                    // newSecondaryLines.push( new Line( helperLine.end,  unknownPoint.result1, input[ inputIndex ].id ) );
-                    // newSecondaryLines.push( new Line( unknownPoint.result1, helperLine.start, input[ nextId ].id ) );
-
                     // Order the arrays by id.
                     newLines.sort( ( a, b ) => a.id - b.id );
+                    newSecondaryLines.sort( ( a, b ) => a.id - b.id );
 
                     // Shape is finished.
                     break;
                 }
             }
            
-/*
-
-
-            // Start to calculate from the first fixed line or if there are no fixed lines
-            // this is a triangle, and we don't need fixed lines.
-            let startId = 0;
-            if( fixedLines.length > 0 ) {
-                startId = fixedLines[ 0 ];
-            }
-
-            // First line in the triangle is the first line with fixed angle 
-            // or if the shape has more than three corners, draw the line from this line's start to the next line's end. 
-            let triangleLine1 = newLines[ startId ];
-            let nextId = getNextId( startId, newLines );
-            if( newLines.length > 3 ) {
-                triangleLine1 = new Line( triangleLine1.start,  newLines[ nextId ].end, 0 );
-            }
-
-            // Todo create these in case of not triangle.
-            let triangleLine2Id = getNextId( nextId, newLines );
-            let triangleLine2 = newLines[ triangleLine2Id ];
-            let triangleLine3Id = getNextId( triangleLine2Id, newLines );
-            let triangleLine3 = newLines[ triangleLine3Id ];
-
-            // This can be done by creating a circle of a radius of a known side length
-            // to both end of a set line. Calculate the crossing points for these circles. 
-            let knownPoint0 = triangleLine1.start;
-            let knownPoint1 = triangleLine1.end;
-
-
-            // Get the radii of the circles.
-            let r1 = triangleLine2.length;
-            let r2 = triangleLine3.length;
-
-            // Length between the circle centers.
-            let R = triangleLine1.length;
-
-            let lastPoint = calculateLastPointInTriangle( knownPoint0, knownPoint1, r1, r2, R );
-
-            // Save the lines.
-            newLines[ triangleLine2Id ] = new Line( triangleLine1.end,  lastPoint.result2, newLines[ triangleLine2Id ].id );
-            newLines[ triangleLine3Id ] = new Line( lastPoint.result2, triangleLine1.start, newLines[ triangleLine3Id ].id );
-
-            
-            // Avoid crossing lines.
-            for( let index = 0; index < input.length; index++ ) {
-
-                 // Skip if fixed line.
-                 if( fixedLines.some( ( idx ) => idx === index ) ) {
-                    continue;
-                }
-
-                // Find if there are any lines that cross this line.
-                for( let nextIndex = index + 5; nextIndex < input.length; nextIndex++ ) {
-
-                    // Turn if in conflict.
-                    let turnedAngles = 0;
-                    let conflict = false;
-                    do {
-
-                        // Check from x-axis.
-                        let startDx = newLines[ index ].start.x - newLines[ nextIndex ].start.x;
-                        let endDx = newLines[ index ].end.x - newLines[ nextIndex ].end.x;
-                        let xAxisConflict = false;
-                        if( !( ( startDx > 0 && endDx > 0 ) || ( startDx < 0 && endDx < 0 ) )  ) {
-                            
-                            // X-axis has a possible conflict.
-                            xAxisConflict = true;
-                        }
-
-                        // Check from y-axis.
-                        let startDy = newLines[ index ].start.y - newLines[ nextIndex ].start.y;
-                        let endDy = newLines[ index ].end.y - newLines[ nextIndex ].end.y;
-                        let yAxisConflict = false;
-                        if( !( ( startDy > 0 && endDy > 0 ) || ( startDy < 0 && endDy < 0 ) )  ) {
-                            
-                            // Y-axis has a possible conflict.
-                            yAxisConflict = true;
-                        }
-
-                        // If in conflict, turn 10 degrees until not in conflict.
-                        conflict = xAxisConflict && yAxisConflict;
-                        if( conflict ) {
-                            
-                            // Save old end point.
-                            let oldEnd = newLines[ index ].end;
-
-                            // Turn this line.
-                            let newAngle = newLines[ index ].angle - 1;
-                            newAngle = newAngle < 0 ? 360 + newAngle : newAngle;
-                            turnedAngles += 1;
-                            newLines[ index ].setNewAngle( newAngle );
-
-                            // Move the subsequent lines the to match this turning.
-                            let dx = newLines[ index ].end.x - oldEnd.x;
-                            let dy = newLines[ index ].end.y - oldEnd.y;
-                            for (let restIndex = index + 1; restIndex < newLines.length; restIndex++) {
-                                newLines[ restIndex ].moveLine( dx, dy );
-                            }
-                        }
-
-                    } while( conflict && turnedAngles < 360 );
-                }
-            }
-*/
             // Put the shape to the center of canvas.
             const centeredLines = centerLines( newLines );
 
