@@ -12,7 +12,7 @@ export class Line {
             this.length = calculateLength( this.start, this.end );
 
             // Calculate angle between x-axis and the line.
-            this.angle = calculateAngleBetweenLines( { start, end }, { start:{ x :0, y:0}, end: { x:1, y:0} } );
+            this.angle = calculateAngleBetweenLines( { start, end }, { start:{ x :0, y:0}, end: { x:1, y:0 } } );
     }
 
     // Calculate new end coordinates when setting new length.

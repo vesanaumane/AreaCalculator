@@ -8,6 +8,7 @@ export default function LineInfo( { onChangeCallback, saveCallback, lineLength, 
     const [ angle, setAngle ] = useState( lineAngle );
     const [ angleLocked, setAngleLocked ] = useState( lineAngleLocked );
     const [ angleBetweenLines, setAngleBetweenLines ] = useState( lineAngleToNext );
+    const [ angleBetweenLinesDisplay, setAngleBetweenLinesDisplay ] = useState( toInnerAngle( lineAngleToNext ) );
     const [ disableLockButton, setDisableLockButton ] = useState( lockButtonCanBeDisabled );
 
     useEffect( () => {
@@ -20,8 +21,8 @@ export default function LineInfo( { onChangeCallback, saveCallback, lineLength, 
             setAngle( lineAngle )
         }
 
-        if( angleBetweenLines !== lineAngleToNext ) {
-            setAngleBetweenLines( lineAngleToNext )
+        if( toOuterAngle( angleBetweenLinesDisplay ) !==  lineAngleToNext  ) {
+            setAngleBetweenLinesDisplay( toInnerAngle( lineAngleToNext ) );
         }
 
         if( angleLocked !== lineAngleLocked ) {
@@ -32,13 +33,25 @@ export default function LineInfo( { onChangeCallback, saveCallback, lineLength, 
             setDisableLockButton( lockButtonCanBeDisabled );
         }
 
-    }, [ lineLength, lineAngle, lineAngleLocked, lockButtonCanBeDisabled ] );
+    }, [ lineLength, lineAngle, lineAngleLocked, lockButtonCanBeDisabled, lineAngleToNext ] );
 
     useEffect( () => {
 
-        onChangeCallback( { id: lineId, length: length, angle: angle, angleBetweenLines: angleBetweenLines, angleLocked: angleLocked } );
+        let outerAngle = toOuterAngle( angleBetweenLinesDisplay );
+        onChangeCallback( { id: lineId, length: length, angle: angle, angleBetweenLines: outerAngle, angleLocked: angleLocked } );
 
-    }, [ angle, length, angleBetweenLines, angleLocked ]);
+    }, [ angle, length, angleBetweenLinesDisplay, angleLocked ]);
+
+
+    // Convert angle between lines to shape inner angle.
+    function toInnerAngle( angle ) {
+        return 180 - angle;
+    }
+
+    // Convert angle between lines to shape outer angle.
+    function toOuterAngle( angle ) {
+        return 180 - angle;
+    }
 
     function handleLengthInput( evt ) {
         const input = evt.target.value;
@@ -56,7 +69,7 @@ export default function LineInfo( { onChangeCallback, saveCallback, lineLength, 
 
     function handleAngleBetweenLinesInput( evt ) {
         const input = evt.target.value;
-        setAngleBetweenLines( parseFloat( input ) );
+        setAngleBetweenLinesDisplay( parseFloat( input ) );
     }
 
     function handleOnClick() {
@@ -96,7 +109,7 @@ export default function LineInfo( { onChangeCallback, saveCallback, lineLength, 
                         step="1" 
                         min={0} 
                         max={180} 
-                        value={Math.round( angleBetweenLines )}
+                        value={Math.round( angleBetweenLinesDisplay )}
                         onFocus={handleFocus} 
                         onChange={ evt => { handleAngleBetweenLinesInput( evt ) } }
                         disabled={!angleLocked}

@@ -45,6 +45,7 @@ export default function LineInfos( { lines, setAllCallback, setOneCallback } ) {
 
         // Calculate angle to previous line.
         if( newLines.length > 1 ) {
+
             for( let index = 0; index < newLines.length; index++ ) {
                 const line = newLines[ index ];
                 
