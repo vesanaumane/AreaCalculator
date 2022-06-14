@@ -325,7 +325,7 @@ export default function App() {
                     let knownPoint1 = helperLine.end;
 
                     // Calculate the unknown point.
-                    let unknownPoint = calculateLastPointInTriangle( knownPoint0, knownPoint1, r1, r2, R );
+                    let unknownPoint = calculateLastPointInTriangle( knownPoint0, knownPoint1, r2, r1, R );
 
                     // Create the last two lines for the main result.
                     let lastLine1 = new Line( helperLine.end,  unknownPoint.result2, input[ inputIndex ].id );
@@ -390,6 +390,9 @@ export default function App() {
                     // Create the last two lines for the secondary result.
                     // newSecondaryLines.push( new Line( helperLine.end,  unknownPoint.result1, input[ inputIndex ].id ) );
                     // newSecondaryLines.push( new Line( unknownPoint.result1, helperLine.start, input[ nextId ].id ) );
+
+                    // Order the arrays by id.
+                    newLines.sort( ( a, b ) => a.id - b.id );
 
                     // Shape is finished.
                     break;
