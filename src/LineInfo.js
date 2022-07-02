@@ -1,5 +1,6 @@
 import React from 'react';
 import { useState, useEffect } from "react";
+import { toInnerAngle, toOuterAngle } from "./HelperMethods.js"
 
 export default function LineInfo( { onChangeCallback, saveCallback, lineLength, lineAngle, lineAngleToNext, lineAngleLocked, lineId, lockButtonCanBeDisabled, orientationSet } ) {
 
@@ -114,25 +115,6 @@ export default function LineInfo( { onChangeCallback, saveCallback, lineLength, 
             } );
 
     }, [ angle, length, angleBetweenLinesDisplay, angleLocked, orientation ]);
-
-
-    // Convert angle between lines to shape inner angle.
-    function toInnerAngle( angle ) {
-        let innerAngle = 180 - angle;
-        if( innerAngle < 0 ) {
-            innerAngle = 360 + innerAngle;
-        }
-        return innerAngle;
-    }
-
-    // Convert angle between lines to shape outer angle.
-    function toOuterAngle( angle ) {
-        let outerAngle = 180 - angle;
-        if( outerAngle < 0 ) {
-            outerAngle = 360 + outerAngle;
-        }
-        return outerAngle;
-    }
 
     function handleLengthInput( evt ) {
         const input = evt.target.value;

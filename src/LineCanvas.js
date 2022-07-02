@@ -1,6 +1,6 @@
 import React from 'react';
 import { Line } from "./Line.js"
-import { comparePoints, roundDouble, calculateLength, centerLinesInPlane } from "./HelperMethods.js"
+import { comparePoints, roundDouble, calculateLength, centerLinesInPlane, toInnerAngle, angleToRadians } from "./HelperMethods.js"
 import { useState, useRef, useEffect } from "react";
 
 export default function LineCanvas( { lines, secondaryLines, width, height, drawingEnabled, requestRedraw, addLineCallback } ) {
@@ -54,7 +54,20 @@ export default function LineCanvas( { lines, secondaryLines, width, height, draw
             let zoomedSecondaryLines = null;
             if( secondaryLines && secondaryLines.length === lines.length ) {
                 zoomedSecondaryLines = zoomLines( secondaryLines, zoomFactor, canvasDimensions, zoomedLines.lines[ 0 ].start );
-            }  
+            }
+
+            // Calculate angle between next lines.
+            for( let i = 0; i < zoomedLines.lines.length; i++ ) {
+
+                let nextLineId = i != zoomedLines.lines.length - 1 ? i + 1 : 0;
+
+                let angleToNext = angleBetweenLines( lines[ i ], lines[ nextLineId ] );
+                zoomedLines.labelData[ i ].angle = angleToNext;
+                if( zoomedSecondaryLines ) {
+                    let angleToNextSecondary = angleBetweenLines( secondaryLines[ i ], secondaryLines[ nextLineId ] );
+                    zoomedSecondaryLines.labelData[ i ].angle = angleToNextSecondary;
+                }
+            }
 
             // Draw the zoomed lines.
             for( let i = 0; i < zoomedLines.lines.length; i++ ) {
@@ -72,13 +85,13 @@ export default function LineCanvas( { lines, secondaryLines, width, height, draw
                     }
                     else {
 
-                         // Draw only the main line with black.
+                        // Draw only the main line with black.
                         drawLine( ctx, zoomedLines.lines[ i ], zoomedLines.labelData[ i ], '#000' );
                     }
                 }
                 else {
 
-                     // Draw the main line.
+                    // Draw the main line.
                     drawLine( ctx, zoomedLines.lines[ i ], zoomedLines.labelData[ i ] );
                 }
             }
@@ -150,11 +163,24 @@ export default function LineCanvas( { lines, secondaryLines, width, height, draw
         return { lines: zoomedLines, labelData: zoomedLineLabelData };
     }
 
+    function angleBetweenLines( line1, line2 ) {
+        let angleBetweenLines = line2.angle - line1.angle;
+        if( angleBetweenLines < 0 ) {
+            angleBetweenLines = 360 + angleBetweenLines;
+        }
+
+        return toInnerAngle( angleBetweenLines );
+    }
+
     // Draw the line.
     function drawLine ( ctx, line, lineLabelData, lineColour ) {
 
         // Set line colour to black if not given.
-        if( !lineColour ) lineColour = '#000'
+        let labelColour = lineColour;
+        if( !lineColour ) {
+            lineColour = '#000';
+            labelColour = '#666';
+        }
 
         // Round coordinates to nearest integer.
         var x1 = Math.round( line.start.x );
@@ -171,25 +197,12 @@ export default function LineCanvas( { lines, secondaryLines, width, height, draw
         ctx.closePath();
         ctx.stroke();
 
-        // Draw the endings for the line.
-        ctx.beginPath();
-		ctx.arc( x1, y1, 2, 0, Math.PI * 2, false);
-		ctx.fill();
-		ctx.stroke();
-		ctx.beginPath();
-		ctx.arc( x2, y2, 2 ,0 , Math.PI * 2, false);
-		ctx.fill();
-		ctx.stroke();
-
         // Draw label to the line.
-        drawLabelForLine( ctx, 'center', line, lineLabelData )
+        drawLabelForLine( ctx, line, lineLabelData, labelColour )
     };
 
     // Draw the label to the line.
-    function drawLabelForLine( ctx, alignment, line, lineLabelData ) {
-
-        // Use center alignment if not set. Other settings are left and right.
-        if( !alignment ) alignment = 'center';
+    function drawLabelForLine( ctx, line, lineLabelData, colour ) {
       
         // Round coordinates to nearest integer.
         let x1 = Math.round( line.start.x );
@@ -201,13 +214,103 @@ export default function LineCanvas( { lines, secondaryLines, width, height, draw
         let dx = x2 - x1;
         let dy = y2 - y1;
 
+        // Create points with rounded coordinates.
+        let p1 = { x:x1, y:y1 };
+        let p2 = { x:x2, y:y2 };
+
+        // Select data container.
+        let data = !lineLabelData ? line : lineLabelData;
+
+        // Draw length.
+        drawLengthLabel( ctx, line, data.length, p1, p2, dx, dy, colour );
+
+        // Draw angle.
+        drawAngleLabel( ctx, line, data.angle, p1, p2, dx, dy, colour );
+    };
+
+    // Draw label for the length. This is drawn in the middle of the line.
+    function drawLengthLabel( ctx, line, lenght, p1, p2, dx, dy, colour ) {
+
+        // Text to draw.
+        let text = line.id + ": " + roundDouble( lenght, 2 );
+
+         // Add padding from the starting point.
+        let pad = 1/2;
+
+        // Get the starting point for drawing.
+        let p = getLabelStartingPoint( p1, p2, line, false );
+
+        // Draw.
+        drawLabel( ctx, line, text, p, pad, dx, dy, colour );
+    }
+
+    // Draw label for the angle. This is placed to the end of the line.
+    function drawAngleLabel( ctx, line, angle, p1, p2, dx, dy, colour ) {
+        
+        // Text to draw.
+        let text = roundDouble( angle, 0 ) + "°";
+
+        // Add padding from the starting point.
+        let pad = -1 * ( ctx.measureText( text ).width ) / Math.round( line.length );
+
+        // Move label outside of the shape if it doesn't fit inside of it
+        // or the angle is too shallow.
+        var moveOutside = ctx.measureText( text ).width + 25 >= line.length || angle < 75;
+
+        // Get the starting point for drawing.
+        let p = getLabelStartingPoint( p1, p2, line, true, moveOutside );
+
+        // Draw.
+        drawLabel( ctx, line, text, p, pad, dx, dy, colour );
+
+        // Draw a line from the corner to the label if it was moved outside of the shape.
+        if( moveOutside ) {
+
+            // Create the line to draw.
+            let labelLine = new Line( line.end, p );
+
+            // Make the line a bit shorter.
+            labelLine.setNewLength( labelLine.length - 35 );
+
+            // Draw the line.
+            ctx.fillStyle = '#fff';
+            ctx.strokeStyle = '#999';
+            ctx.beginPath();
+            ctx.moveTo( labelLine.start.x, labelLine.start.y );
+            ctx.lineTo( labelLine.end.x, labelLine.end.y );
+            ctx.closePath();
+            ctx.stroke();
+        }
+    }
+
+    // Draw the label.
+    function drawLabel( ctx, line, text, startingPoint, padding, dx, dy, colour ) {
+
+        // Make sure text fit the line.
+        text = fitText( ctx, text, line.lenght );
+
+        // Keep text upright.
+        let angle = textAngle( dx, dy );
+
+        // Draw.
+        ctx.save();
+        ctx.fillStyle = colour;
+        ctx.font  = '10pt Arial';
+        ctx.textAlign = 'center';
+        ctx.translate( startingPoint.x + dx * padding, startingPoint.y + dy * padding  );
+        ctx.rotate( angle );
+        ctx.fillText( text, 0 ,0 );
+        ctx.restore();
+    }
+
+    // Fit the text to the line.
+    function fitText( ctx, text, lineLength ) {
+
         // Make the text to draw as: <id>. l=<length> a=<angle>
-        let lengthText = !lineLabelData ? line.length : lineLabelData.length;
-        let angleText = !lineLabelData ? line.angle : lineLabelData.angle;
-        let textToDraw = line.id + ".  l=" + roundDouble( lengthText, 2 ) + "  α=" + roundDouble( angleText, 0 ) + "°";
+        let textToDraw = text;
 
         // Make sure the text fits to the line.
-        let len = Math.round( line.length );
+        let len = Math.round( lineLength );
         let padding = 10;
 		let avail = len - 2 * padding;
 		if( ctx.measureText && ctx.measureText( textToDraw ).width > avail ){
@@ -215,67 +318,62 @@ export default function LineCanvas( { lines, secondaryLines, width, height, draw
                 textToDraw = textToDraw.slice( 0, -1 );
             }
 		}
-    
 
-		// Keep text upright
+        return textToDraw;
+    }
+
+    // Returns the angle for drawing the text.
+    function textAngle( dx, dy ) {
         let angle = Math.atan2( dy,dx );
         if( angle < - Math.PI/2 || angle > Math.PI/2 ){
             angle -= Math.PI;
         }
 
-        // Create points with rounded coordinates.
-        let p1 = { x:x1, y:y1 };
-        let p2 = { x:x2, y:y2 };
+        return angle;
+    }
 
-        // Add padding from the starting point.
-        let pad;
-        let p;
-        if( alignment === 'center' ) {
-            p = p1;
-            pad = 1/2;
-        } else {
-            let left = alignment === 'left';
-            p = left ? p1 : p2;
-            pad = padding / len * ( left ? 1 : -1 );
-        }
-      
-
+    // Get the starting point where to start to draw the label.
+    function getLabelStartingPoint( p1, p2, line, oppositeSide, moveOutside ) {
 
         // Create small cap between the line and the text.
         // Create a line perpeticular to this line with a length of the cap.
-        let perpeticularLine = new Line( p1, p2 );
+        let perpenticularLine = oppositeSide ? new Line( p2, p1 ) : new Line( p1, p2 );
 
         // Set angle and length depending on which sector we are in.
+        let angleShift = oppositeSide ? 90 : 270;
         if( line.angle <= 90 ) {
-            perpeticularLine.setNewAngle( line.angle + 270 );
-            perpeticularLine.setNewLength( 5 );
+            perpenticularLine.setNewAngle( line.angle + angleShift );
+            perpenticularLine.setNewLength( oppositeSide ? 15 : 5 );
         }
         else if( line.angle > 90 && line.angle < 180 ) {
-            perpeticularLine.setNewAngle( line.angle + 270 );
-            perpeticularLine.setNewLength( 15 );
+            perpenticularLine.setNewAngle( line.angle + angleShift );
+            perpenticularLine.setNewLength( oppositeSide ? 5 : 15 );
         }
         else if( line.angle >= 180 && line.angle < 270 ) {
-            perpeticularLine.setNewAngle( line.angle + 270 );
-            perpeticularLine.setNewLength( 15 );
+            perpenticularLine.setNewAngle( line.angle + angleShift );
+            perpenticularLine.setNewLength( oppositeSide ? 5 : 15 );
         }
         else{
-            perpeticularLine.setNewAngle( line.angle + 270 );
-            perpeticularLine.setNewLength( 5 );
+            perpenticularLine.setNewAngle( line.angle + angleShift );
+            perpenticularLine.setNewLength( oppositeSide ? 15 : 5 );
         }
-        
 
-        p = perpeticularLine.end;
+        // Move the point outside of the shape.
+        if( moveOutside ) {
+            
+            // Create a new line from the end of the perpenticular line
+            // to outside of the shape.
+            let outsideLine = new Line( perpenticularLine.end, perpenticularLine.start );
+            outsideLine.setNewAngle( line.angle );
+            outsideLine.setNewLength( 55 );
+            return outsideLine.end;
+        }
+        else {
 
-        // Draw.
-        ctx.save();
-        ctx.fillStyle = '#666';
-        ctx.font  = '10pt Arial';
-        ctx.textAlign = alignment;
-        ctx.translate( p.x + dx * pad, p.y + dy * pad  );
-        ctx.rotate( angle );
-        ctx.fillText( textToDraw ,0 ,0 );
-        ctx.restore();
-    };
+            // Return the end of the perpenticular line.
+            return perpenticularLine.end;
+        }
+    }
 
     // Calculate zoom factor.
     function calculateZoom( canvasDimensions, lines ) {

@@ -77,6 +77,24 @@ export function calculateAngleBetweenLines( line, otherLine ) {
     return angle;
 }
 
+// Convert angle between lines to shape inner angle.
+export function toInnerAngle( angle ) {
+    let innerAngle = 180 - angle;
+    if( innerAngle < 0 ) {
+        innerAngle = 360 + innerAngle;
+    }
+    return innerAngle;
+}
+
+// Convert angle between lines to shape outer angle.
+export function toOuterAngle( angle ) {
+    let outerAngle = 180 - angle;
+    if( outerAngle < 0 ) {
+        outerAngle = 360 + outerAngle;
+    }
+    return outerAngle;
+}
+
 // Convert degrees to radians.
 export function angleToRadians( angleInDegrees ) {
     return  angleInDegrees  * (  Math.PI / 180.0 );

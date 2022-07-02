@@ -509,8 +509,8 @@ export default function App() {
          // Area is not negative. Sign depends on which direction the shape was drawn.
          result = Math.abs( result );
  
-         // Round the result to 3 decimals
-         var decimalPart = Math.pow( 10, 3 );
+         // Round the result to 2 decimals
+         var decimalPart = Math.pow( 10, 2 );
          result =  Math.round( ( result + Number.EPSILON ) * decimalPart ) / decimalPart;
  
          // Set the area.
