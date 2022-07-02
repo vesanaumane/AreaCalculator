@@ -274,7 +274,7 @@ export default function LineCanvas( { lines, secondaryLines, width, height, draw
 
             // Draw the line.
             ctx.fillStyle = '#fff';
-            ctx.strokeStyle = '#999';
+            ctx.strokeStyle = '#b1b1b1';
             ctx.beginPath();
             ctx.moveTo( labelLine.start.x, labelLine.start.y );
             ctx.lineTo( labelLine.end.x, labelLine.end.y );
@@ -340,22 +340,22 @@ export default function LineCanvas( { lines, secondaryLines, width, height, draw
         let perpenticularLine = oppositeSide ? new Line( p2, p1 ) : new Line( p1, p2 );
 
         // Set angle and length depending on which sector we are in.
-        let angleShift = oppositeSide ? 90 : 270;
+        let angleShift = moveOutside ? 0 :  oppositeSide ? 90 : 270;
         if( line.angle <= 90 ) {
             perpenticularLine.setNewAngle( line.angle + angleShift );
-            perpenticularLine.setNewLength( oppositeSide ? 15 : 5 );
+            perpenticularLine.setNewLength( moveOutside ? 10 : oppositeSide ? 15 : 5 );
         }
         else if( line.angle > 90 && line.angle < 180 ) {
             perpenticularLine.setNewAngle( line.angle + angleShift );
-            perpenticularLine.setNewLength( oppositeSide ? 5 : 15 );
+            perpenticularLine.setNewLength( moveOutside ? 10 : oppositeSide ? 5 : 15 );
         }
         else if( line.angle >= 180 && line.angle < 270 ) {
             perpenticularLine.setNewAngle( line.angle + angleShift );
-            perpenticularLine.setNewLength( oppositeSide ? 5 : 15 );
+            perpenticularLine.setNewLength( moveOutside ? 10 : oppositeSide ? 5 : 15 );
         }
         else{
             perpenticularLine.setNewAngle( line.angle + angleShift );
-            perpenticularLine.setNewLength( oppositeSide ? 15 : 5 );
+            perpenticularLine.setNewLength( moveOutside ? 10 : oppositeSide ? 15 : 5 );
         }
 
         // Move the point outside of the shape.
@@ -395,7 +395,7 @@ export default function LineCanvas( { lines, secondaryLines, width, height, draw
         let shapeHeight = maxY - minY;
 
         // Calculate zoom for width and height with some padding. 
-        let padding = 100;
+        let padding = 140;
         let zoomX = ( canvasDimensions.width - padding ) / shapeWidth;
         let zoomY = ( canvasDimensions.height - padding ) / shapeHeight;
 

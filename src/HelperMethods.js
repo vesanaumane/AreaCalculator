@@ -154,7 +154,7 @@ export function centerLinesInPlane( lines, dimensions ) {
 
     // Adjust lines.
     const centeredLines = lines.slice();
-    const padding = 20;
+    const padding = 70;
     var outsideX = padding;
     var outsideY = padding;
     for( var i = 0; i < centeredLines.length; ++i ) {
@@ -184,9 +184,9 @@ export function centerLinesInPlane( lines, dimensions ) {
         const adjustX = outsideX < padding ? padding - outsideX : 0;
         const adjustY = outsideY < padding ? padding - outsideY : 0;
 
+        // Set the new coordinates.
         for( var j = 0; j < centeredLines.length; ++j ) {
 
-            // Set the new coordinates.
             centeredLines[ j ].start.x += adjustX;
             centeredLines[ j ].start.y += adjustY;
             centeredLines[ j ].end.x += adjustX;

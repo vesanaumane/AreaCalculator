@@ -676,7 +676,7 @@ export default function App() {
         });
 
         // Calculate minimum width and height. Use a 50 pixel cap on edges.
-        const padding = 100;
+        const padding = 150;
         var minWidth = xMax - xMin + padding;
         var minHeight = yMax - yMin + padding;
 
