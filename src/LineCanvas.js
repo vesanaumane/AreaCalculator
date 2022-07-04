@@ -93,8 +93,10 @@ export default function LineCanvas( { lines, secondaryLines, width, height, draw
                             drawLine( ctx, zoomedLines.lines[ i ], zoomedLines.labelData[ i ], '#000','#666', true, false );
 
                             // Draw the first answer angle.
-                            drawLabelForLine( ctx, zoomedLines.lines[ i ], zoomedLines.labelData[ i ], '#1a85ff', false, true, -15 );
-                            drawLabelForLine( ctx, zoomedSecondaryLines.lines[ i ], zoomedSecondaryLines.labelData[ i ], '#d41159', false, true, 15 );
+                            drawLabelForLine( ctx, zoomedLines.lines[ i ], zoomedLines.labelData[ i ], '#1a85ff', false, true, 15 );
+
+                            // Daw the second answer angle.
+                            drawLabelForLine( ctx, zoomedSecondaryLines.lines[ i ], zoomedSecondaryLines.labelData[ i ], '#d41159', false, true, -15 );
                         }
                         else {
 
