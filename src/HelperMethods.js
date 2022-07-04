@@ -228,22 +228,24 @@ export function doLineIntersectWithAnyOfTheLines( line, lines ) {
 // https://www.geeksforgeeks.org/check-if-two-given-line-segments-intersect/
 export function doLinesIntersect( line1, line2 ) {
 
-    let p1 = { x: line1.start.x, y: line1.start.y };
-    let q1 = { x: line1.end.x, y: line1.end.y };
-    let p2 = { x: line2.start.x, y: line2.start.y };
-    let q2 = { x: line2.end.x, y: line2.end.y };
+    // Get the points. Use rounded values to avoid lines that 
+    // practically are the same.
+    let precision = 5;
+    let p1 = { x: roundDouble( line1.start.x, precision ), y: roundDouble( line1.start.y, precision ) };
+    let q1 = { x: roundDouble( line1.end.x, precision ), y: roundDouble( line1.end.y, precision ) };
+    let p2 = { x: roundDouble( line2.start.x, precision ), y: roundDouble( line2.start.y, precision ) };
+    let q2 = { x: roundDouble( line2.end.x, precision ), y: roundDouble( line2.end.y, precision ) };
 
     return doIntersect( p1, q1, p2, q2 );
-
 }
 
 // Given three collinear points p, q, r, the function checks if
 // point q lies on line segment 'pr'
 function onSegment(p, q, r)
 {
-    if (q.x <= Math.max(p.x, r.x) && q.x >= Math.min(p.x, r.x) &&
-        q.y <= Math.max(p.y, r.y) && q.y >= Math.min(p.y, r.y))
-    return true;
+    if( q.x <= Math.max( p.x, r.x ) && q.x >= Math.min( p.x, r.x ) &&
+        q.y <= Math.max( p.y, r.y ) && q.y >= Math.min( p.y, r.y ) )
+        return true;
    
     return false;
 }

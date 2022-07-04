@@ -1,6 +1,6 @@
 import "./App.css";
 import { Line } from "./Line.js"
-import { comparePoints, centerLinesInPlane, doLineIntersectWithAnyOfTheLines } from "./HelperMethods.js"
+import { comparePoints, centerLinesInPlane, doLineIntersectWithAnyOfTheLines, toInnerAngle } from "./HelperMethods.js"
 import LineInfos from "./LineInfos.js"
 import React from 'react';
 import LineCanvas from "./LineCanvas.js"
@@ -332,7 +332,7 @@ export default function App() {
                     let lastLine2 = new Line( unknownPoint.result2, helperLine.start, input[ nextId ].id );
 
                     // Check if these lines creates valid shape.
-                    let validShapeMain = !doLineIntersectWithAnyOfTheLines( lastLine1, newLines ) && !doLineIntersectWithAnyOfTheLines( lastLine2, newLines );
+                    let validShapeMain = isShapeValid( newLines, lastLine1, lastLine2 ); // !doLineIntersectWithAnyOfTheLines( lastLine1, newLines ) && !doLineIntersectWithAnyOfTheLines( lastLine2, newLines );
 
                     // Create lines for other result.
                     let lastLine1Other = new Line( helperLine.end,  unknownPoint.result1, input[ inputIndex ].id );
@@ -341,7 +341,7 @@ export default function App() {
                     // Check if these lines creates valid shape. If triangle, set this always to false.
                     let validShapeSecondary = input.length === 3 
                         ? false 
-                        : !doLineIntersectWithAnyOfTheLines( lastLine1Other, newSecondaryLines ) && !doLineIntersectWithAnyOfTheLines( lastLine2Other, newSecondaryLines );
+                        : isShapeValid( newSecondaryLines, lastLine1Other, lastLine2Other ); // !doLineIntersectWithAnyOfTheLines( lastLine1Other, newSecondaryLines ) && !doLineIntersectWithAnyOfTheLines( lastLine2Other, newSecondaryLines );
 
                     // Save to new lines, if the main result was not valid, or to secondary if both are valid. If neither is valid, show error.
                     if( validShapeMain && validShapeSecondary ) {
@@ -452,22 +452,50 @@ export default function App() {
     }
 
     // Is shape formed by the lines valid?
-    function isShapeValid( currentLines ) {
+    function isShapeValid( currentLines, lastLine1, lastLine2 ) {
 
-        // Compare line coordinates to find out if shape is valid.
-        for(let index = 0; index < currentLines.length; index++ ) {
+        // Check if the last two lines intersect.
+        let validShape = !doLineIntersectWithAnyOfTheLines( lastLine1, currentLines ) && !doLineIntersectWithAnyOfTheLines( lastLine2, currentLines );
 
-            // Next index.
-            let nextLineIndex = index < currentLines.length - 1 ? index + 1 : 0;
+        // If still valid, check that angle between lines is larger than 1 degree.
+        if( validShape ) {
 
-            // Shape is not valid when subsequent line's end and start are not the same.
-            if( !comparePoints( currentLines[ index ].end, currentLines[ nextLineIndex ].start, 5 ) ) {
+            // Function to calculate angle between two lines.
+            function angleBetweenLines( line1, line2 ) {
+                let angleBetweenLines = line2.angle - line1.angle;
+                if( angleBetweenLines < 0 ) {
+                    angleBetweenLines = 360 + angleBetweenLines;
+                }
+
+                return toInnerAngle( angleBetweenLines );
+            }
+
+            // Return true if lines are on top of each other ( 1 degree leeway ).
+            function areLinesOnTopOfEachOther( line1, line2 ) {
+                
+                if( comparePoints( line1.start, line2.end, 5 ) || comparePoints( line1.end, line2.start, 5 ) ) {
+
+                    let lineAngle = angleBetweenLines( line1, line2 );
+                    if( lineAngle < 1.0 || lineAngle > 359.0 ) {
+                        return true;
+                    }
+                }
                 return false;
             }
+
+            // Check if the last lines are on top of some other lines.
+            currentLines.every( line => {
+
+                if( areLinesOnTopOfEachOther( line, lastLine1 ) || areLinesOnTopOfEachOther( line, lastLine2 ) ) {
+                    validShape = false;
+                    return false;
+                }
+            });
+
         }
 
         // Shape is valid.
-        return true;
+        return validShape;
     }
 
      // Call back for redrawing the canvas.
